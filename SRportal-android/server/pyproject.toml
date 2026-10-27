@@ -1,0 +1,33 @@
+[project]
+name = "srportal-server"
+version = "0.1.0"
+description = "Mock cloud server for the Search and Rescue Portal MVP: metadata index, search-window query, detector triggers."
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "Apache-2.0" }
+dependencies = [
+    "fastapi>=0.115",
+    "uvicorn[standard]>=0.30",
+    "pydantic>=2.7",
+    "pyyaml>=6.0",
+    "httpx>=0.27",
+    "h3>=4.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0",
+]
+
+[project.scripts]
+srportal-server = "srportal_server.__main__:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/srportal_server"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

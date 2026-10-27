@@ -1,0 +1,25 @@
+{
+  "on_foot": {
+    "d50_saturation_m": 3000.0,
+    "time_constant_hours": 6.0,
+    "min_radius_m": 300.0,
+    "max_radius_m": 25000.0,
+    "p75_multiplier": 1.8,
+    "p95_multiplier": 4.0
+  },
+  "vehicle": {
+    "effective_speed_m_per_h": 15000.0,
+    "max_radius_m": 40000.0
+  },
+  "equipment": {
+    "uav_max_wind_ms": 10.0,
+    "uav_max_gust_ms": 14.0,
+    "uav_max_precip_mm_h": 2.5,
+    "uav_min_visibility_m": 1000.0
+  },
+  "team": {
+    "target_hours": 4.0,
+    "priority_cells": 6,
+    "team_size": 6
+  }
+}

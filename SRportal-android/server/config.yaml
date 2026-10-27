@@ -1,0 +1,43 @@
+# Search and Rescue Portal mock cloud server.
+# Every tunable lives here; the code reads this file once at start-up.
+
+server:
+  host: "0.0.0.0"
+  port: 8000
+  database_path: "srportal.db"
+  seed_demo_on_start: true
+
+cells:
+  # H3 resolution is chosen from the search radius; the coarsest level caps the cell count.
+  use_h3: true
+  max_cells: 400
+  resolutions:
+    - { max_radius_m: 2500, resolution: 9 }
+    - { max_radius_m: 7000, resolution: 8 }
+    - { max_radius_m: 25000, resolution: 7 }
+    - { max_radius_m: 100000, resolution: 6 }
+
+weather:
+  # "open-meteo" fetches live conditions at the pin; anything else uses deterministic demo values.
+  provider: "open-meteo"
+  timeout_seconds: 4.0
+
+geocode:
+  # "nominatim" proxies OpenStreetMap search; anything else uses the built-in gazetteer.
+  provider: "nominatim"
+  timeout_seconds: 4.0
+  user_agent: "srportal-mvp/0.1 (search-and-rescue demo)"
+
+detector:
+  # Simulated small-object detector job timings, seconds after the trigger.
+  queued_seconds: 3
+  running_seconds: 6
+  max_candidates: 3
+
+demo:
+  # Where the seeded metadata is centred: Elenydd uplands, Cambrian Mountains.
+  centre_lat: 52.2950
+  centre_lon: -3.7600
+  days_back: 14
+  dashcam_vehicles: ["CAR01", "CAR02", "CAR03"]
+  uav_platform: "UAV-LITTER-SURVEY-03"

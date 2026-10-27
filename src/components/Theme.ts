@@ -1,0 +1,17 @@
+export const SrColors = {
+  Slate: '#5B5B5B',
+  Charcoal: '#383838',
+  CharcoalDark: '#2B2B2B',
+  Mist: '#D9D9D9',
+  Lavender: '#E6DEF5',
+  Violet: '#6B5AA6',
+  Signal: '#34C759',
+  Amber: '#F5A623',
+  Danger: '#E5484D',
+  Sun: '#F2D06B',
+  Sky: '#8ED0FF',
+  Ink: '#141414',
+  Satellite: '#7DD3FC',
+  Dashcam: '#F2D06B',
+  Uav: '#86EFAC',
+};

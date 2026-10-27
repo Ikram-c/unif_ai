@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">SR Portal</string>
+    <string name="designed_by">Designed by AberTech</string>
+    <string name="splash_title">Search And Rescue Portal</string>
+    <string name="server_status">Server Connection Status</string>
+    <string name="new_rescue">New Rescue</string>
+    <string name="ongoing_rescues">Ongoing Rescues</string>
+    <string name="completed_rescues">Completed Rescues</string>
+    <string name="settings">Settings</string>
+    <string name="last_known_location">Last Known Location</string>
+    <string name="search_map">Search Map</string>
+    <string name="confirm">confirm</string>
+    <string name="on_foot">On Foot</string>
+    <string name="vehicle">Vehicle</string>
+    <string name="unknown">Unknown</string>
+    <string name="last_seen_title">Last Seen Date/Time</string>
+    <string name="time_zone">Time-Zone</string>
+    <string name="begin_ai_model">Begin AI Model</string>
+    <string name="add_user_info">Add Additional User info</string>
+    <string name="available_data">Available Data</string>
+</resources>

@@ -1,0 +1,8 @@
+{
+  "name": "Mountain Rescue Orchestration (SR Portal)",
+  "description": "AberTech Search & Rescue orchestration portal featuring search window modeling, wander radius calculation, hexagonal cell priority scoring, remote sensing data indexing, equipment viability assessment, and team sizing.",
+  "permissions": [],
+  "capabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

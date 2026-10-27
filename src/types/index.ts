@@ -244,3 +244,92 @@ export interface AppSettings {
   deviceTag: string; // "ABER-04"
   darkMode: boolean; // Field appearance toggle
 }
+
+export type CausalityViabilityLevel = 'VIABLE' | 'DEGRADED' | 'RESTRICTED' | 'BLOCKED';
+export type TerrainSlope = 'FLAT' | 'MODERATE' | 'STEEP' | 'CLIFF';
+export type TerrainSubstrate = 'MOORLAND' | 'TRACK' | 'SCREE' | 'FOREST' | 'CRAG' | 'WATER';
+export type TeamCallsign = 'Alpha' | 'Bravo' | 'UAV-01' | 'K9-Rex' | 'Tech-1' | 'Rescue-936';
+
+export interface TacticalTeam {
+  id: string;
+  name: string;
+  callsign: TeamCallsign;
+  type: 'FOOT_HASTY' | 'FOOT_GRID' | 'AIR_UAV' | 'K9_UNIT' | 'TECH_ROPE' | 'HELO';
+  personnel: number;
+  sector: string;
+  assignedHexId?: string;
+  status: 'Ready' | 'In progress' | 'Reconciled' | 'Holding' | 'Returning';
+  radioChannel: string;
+  endurancePct: number;
+  batteryPct?: number;
+  speedKmh: number;
+  position: GeoPosition;
+  breadcrumbs: GeoPosition[];
+  carriedEquipment: string[];
+  currentTask: string;
+  lastCheckInUtc: string;
+}
+
+export interface CellTerrainInfo {
+  elevation_m: number;
+  slope_deg: number;
+  slope_category: TerrainSlope;
+  substrate: TerrainSubstrate;
+  exposure_level: 'LOW' | 'MEDIUM' | 'HIGH' | 'EXTREME';
+  hazard_tags: string[];
+}
+
+export interface TeamViabilityAssessment {
+  team_id: string;
+  callsign: TeamCallsign;
+  viable: boolean;
+  status: CausalityViabilityLevel;
+  speed_kmh: number;
+  pod_pct: number; // Probability of detection 0-100
+  reason: string;
+}
+
+export interface EquipmentViabilityAssessment {
+  equipment: string;
+  category: 'OPTICAL' | 'RIGGING' | 'RADIO' | 'EVACUATION' | 'SCENT';
+  status: 'OPTIMAL' | 'USABLE' | 'DEGRADED' | 'PROHIBITED';
+  reason: string;
+}
+
+export interface CellCausalityReport {
+  cell_id: string;
+  terrain: CellTerrainInfo;
+  overall_score: number; // 0-100% viability
+  viability: CausalityViabilityLevel;
+  limiting_factors: string[];
+  team_assessments: TeamViabilityAssessment[];
+  equipment_assessments: EquipmentViabilityAssessment[];
+  primary_recommendation: string;
+}
+
+export interface MapLayerToggles {
+  hexGrid: boolean;
+  viabilityHeatmap: boolean;
+  sectors: boolean;
+  wanderContours: boolean;
+  teamPositions: boolean;
+  teamTracks: boolean;
+  uavFlightPath: boolean;
+  terrainHazards: boolean;
+}
+
+export type WeatherScenarioKey = 'BASELINE' | 'SUMMIT_GALE' | 'CWM_FOG' | 'FREEZING_NIGHT';
+
+export interface DetailedWeatherReport extends WeatherSnapshot {
+  wind_gust_ms: number;
+  wind_dir_deg: number;
+  wind_dir_cardinal: string;
+  cloud_ceiling_m: number;
+  barometric_hpa: number;
+  baro_trend: 'FALLING' | 'STEADY' | 'RISING';
+  wind_chill_c: number;
+  precipitation_type: 'NONE' | 'MIST' | 'DRIZZLE' | 'RAIN' | 'SLEET_SNOW';
+  daylight_remaining_min: number;
+  scenario: WeatherScenarioKey;
+}
+

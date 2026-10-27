@@ -1,7 +1,21 @@
 import React, { useEffect, useRef } from 'react';
 import L from 'leaflet';
-import { DataSourceAvailability, EvidenceCandidate, GeoPosition, Observation, RadiusRing, SearchRegion, TeamAllocation } from '../types';
+import {
+  CellCausalityReport,
+  DataSourceAvailability,
+  DetailedWeatherReport,
+  EvidenceCandidate,
+  GeoPosition,
+  MapLayerToggles,
+  Observation,
+  RadiusRing,
+  SearchCell,
+  SearchRegion,
+  TacticalTeam,
+  TeamAllocation,
+} from '../types';
 import { SrColors } from './Theme';
+import { evaluateCellViability, WEATHER_PRESETS, DEFAULT_TACTICAL_TEAMS } from '../core/CausalityModel';
 
 // Custom LKP Pin Marker Icon
 const createPinIcon = (label?: string) => {
@@ -9,7 +23,7 @@ const createPinIcon = (label?: string) => {
     className: 'custom-lkp-pin',
     html: `
       <div style="position: relative; display: flex; flex-direction: column; align-items: center; transform: translate(-50%, -100%);">
-        <div style="width: 28px; height: 36px; display: flex; items-center; justify-content: center;">
+        <div style="width: 28px; height: 36px; display: flex; align-items: center; justify-content: center;">
           <svg width="28" height="36" viewBox="0 0 24 32" fill="none">
             <path d="M12 0C5.37 0 0 5.37 0 12C0 21 12 32 12 32C12 32 24 21 24 12C24 5.37 18.63 0 12 0Z" fill="#0B6758" stroke="#FFFFFF" stroke-width="2"/>
             <circle cx="12" cy="12" r="4.5" fill="#FFFFFF"/>
@@ -33,7 +47,7 @@ const createEvidenceIcon = (label: string) => {
     className: 'custom-evidence-pin',
     html: `
       <div style="position: relative; display: flex; flex-direction: column; align-items: center; transform: translate(-50%, -100%);">
-        <div style="width: 26px; height: 34px; display: flex; items-center; justify-content: center;">
+        <div style="width: 26px; height: 34px; display: flex; align-items: center; justify-content: center;">
           <svg width="26" height="34" viewBox="0 0 24 32" fill="none">
             <path d="M12 0C5.37 0 0 5.37 0 12C0 21 12 32 12 32C12 32 24 21 24 12C24 5.37 18.63 0 12 0Z" fill="#F5A623" stroke="#FFFFFF" stroke-width="2"/>
             <circle cx="12" cy="12" r="4" fill="#FFFFFF"/>
@@ -49,17 +63,34 @@ const createEvidenceIcon = (label: string) => {
   });
 };
 
-// Custom Team Marker Icon
-const createTeamIcon = (name: string, sector: string) => {
+// Tactical Team Marker Icon
+const createTacticalTeamIcon = (team: TacticalTeam) => {
+  let bgColor = '#0B6758';
+  let typeCode = 'FT';
+  if (team.type === 'AIR_UAV') {
+    bgColor = '#16A34A';
+    typeCode = 'UAV';
+  } else if (team.type === 'K9_UNIT') {
+    bgColor = '#9A690B';
+    typeCode = 'K9';
+  } else if (team.type === 'TECH_ROPE') {
+    bgColor = '#07483D';
+    typeCode = 'TECH';
+  } else if (team.type === 'HELO') {
+    bgColor = '#0369A1';
+    typeCode = 'HELO';
+  }
+
   return L.divIcon({
-    className: 'custom-team-pin',
+    className: 'custom-tactical-team-pin',
     html: `
-      <div style="display: flex; items-center; gap: 4px; background: #0B6758; color: #FFFFFF; font-size: 11px; font-weight: bold; padding: 3px 8px; border-radius: 20px; box-shadow: 0 2px 8px rgba(11,103,88,0.4); border: 1.5px solid #FFFFFF; white-space: nowrap;">
-        <span>Team ${name}</span>
+      <div style="display: flex; align-items: center; gap: 4px; background: ${bgColor}; color: #FFFFFF; font-size: 11px; font-weight: bold; padding: 2px 8px; border-radius: 14px; box-shadow: 0 2px 8px rgba(0,0,0,0.35); border: 2px solid #FFFFFF; white-space: nowrap; transform: translate(-50%, -50%); cursor: pointer;">
+        <span style="font-size: 9px; opacity: 0.85; background: rgba(255,255,255,0.25); padding: 1px 4px; border-radius: 8px;">${typeCode}</span>
+        <span>${team.callsign}</span>
       </div>
     `,
-    iconSize: [80, 24],
-    iconAnchor: [40, 12],
+    iconSize: [90, 24],
+    iconAnchor: [45, 12],
   });
 };
 
@@ -74,8 +105,13 @@ interface OsmMapProps {
   regions?: SearchRegion[];
   dataSources?: DataSourceAvailability[];
   teams?: TeamAllocation[];
+  tacticalTeams?: TacticalTeam[];
   candidates?: EvidenceCandidate[];
   showSectors?: boolean;
+  layerToggles?: MapLayerToggles;
+  weather?: DetailedWeatherReport;
+  selectedHexId?: string | null;
+  onSelectHex?: (cell: SearchCell, report: CellCausalityReport) => void;
   className?: string;
   showLegend?: boolean;
 }
@@ -91,14 +127,35 @@ export const OsmMap: React.FC<OsmMapProps> = ({
   regions = [],
   dataSources = [],
   teams = [],
+  tacticalTeams,
   candidates = [],
   showSectors = false,
+  layerToggles,
+  weather,
+  selectedHexId,
+  onSelectHex,
   className = 'h-full w-full',
   showLegend = true,
 }) => {
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<L.Map | null>(null);
   const layerGroupRef = useRef<L.LayerGroup | null>(null);
+
+  // Active weather and tactical teams fallback
+  const activeWeather = weather || WEATHER_PRESETS.BASELINE;
+  const activeTacticalTeams = tacticalTeams || DEFAULT_TACTICAL_TEAMS;
+
+  // Active toggles with sensible defaults
+  const activeToggles: MapLayerToggles = layerToggles || {
+    hexGrid: true,
+    viabilityHeatmap: true,
+    sectors: showSectors,
+    wanderContours: true,
+    teamPositions: true,
+    teamTracks: true,
+    uavFlightPath: true,
+    terrainHazards: true,
+  };
 
   // Initialize Map
   useEffect(() => {
@@ -112,7 +169,7 @@ export const OsmMap: React.FC<OsmMapProps> = ({
         attributionControl: false,
       });
 
-      // CartoDB Positron / OSM clean topo style
+      // CartoDB / OSM clean topo style
       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         maxZoom: 18,
         subdomains: ['a', 'b', 'c'],
@@ -148,7 +205,7 @@ export const OsmMap: React.FC<OsmMapProps> = ({
     }
   }, [center.lat, center.lon]);
 
-  // Redraw layers
+  // Redraw layers whenever state or toggles change
   useEffect(() => {
     const map = mapInstanceRef.current;
     const layers = layerGroupRef.current;
@@ -158,21 +215,21 @@ export const OsmMap: React.FC<OsmMapProps> = ({
     const pinLocation = pin || center;
 
     // 1. Draw Kinematic Wander Radius Rings (50%, 75%, 95%)
-    if (rings && rings.length > 0) {
+    if (activeToggles.wanderContours && rings && rings.length > 0) {
       const sortedRings = [...rings].sort((a, b) => b.radius_m - a.radius_m);
       const ringColors = [SrColors.Ring95, SrColors.Ring75, SrColors.Ring50];
-      const ringOpacities = [0.08, 0.15, 0.22];
+      const ringOpacities = [0.06, 0.12, 0.18];
 
       sortedRings.forEach((ring, idx) => {
         const ringColor = ringColors[idx % ringColors.length] || SrColors.Primary;
-        const ringOpacity = ringOpacities[idx % ringOpacities.length] || 0.15;
+        const ringOpacity = ringOpacities[idx % ringOpacities.length] || 0.12;
 
         const circle = L.circle([pinLocation.lat, pinLocation.lon], {
           radius: ring.radius_m,
           color: ringColor,
           weight: 2,
           dashArray: idx === 0 ? '6, 6' : undefined,
-          opacity: 0.9,
+          opacity: 0.85,
           fillColor: ringColor,
           fillOpacity: ringOpacity,
         });
@@ -189,8 +246,8 @@ export const OsmMap: React.FC<OsmMapProps> = ({
       });
     }
 
-    // 2. Draw Sector Polygons if tactical operation view
-    if (showSectors) {
+    // 2. Draw Sector Polygons if toggled
+    if (activeToggles.sectors) {
       // Sector A: Northern path sweep polygon
       const sectorA = [
         [pinLocation.lat, pinLocation.lon],
@@ -203,9 +260,9 @@ export const OsmMap: React.FC<OsmMapProps> = ({
         color: '#0B6758',
         weight: 2,
         fillColor: '#E1ECE8',
-        fillOpacity: 0.35,
+        fillOpacity: 0.3,
       });
-      polyA.bindTooltip('Sector A · Northern path (Team Alpha)', {
+      polyA.bindTooltip('Sector A · Northern Path (Team Alpha / K9)', {
         sticky: true,
         className: 'bg-[#0B6758] text-white text-xs px-2 py-1 rounded shadow font-semibold',
       });
@@ -223,94 +280,229 @@ export const OsmMap: React.FC<OsmMapProps> = ({
         color: '#269584',
         weight: 2,
         fillColor: '#269584',
-        fillOpacity: 0.22,
+        fillOpacity: 0.2,
       });
-      polyB.bindTooltip('Sector B · Southern drainage (Team Bravo)', {
+      polyB.bindTooltip('Sector B · Southern Drainage (Team Bravo)', {
         sticky: true,
         className: 'bg-[#1C2E2A] text-white text-xs px-2 py-1 rounded shadow font-semibold',
       });
       layers.addLayer(polyB);
     }
 
-    // 3. Draw Hexagonal Search Cells if available
-    if (regions && regions.length > 0 && !showSectors) {
-      const topScore = regions[0]?.score || 1.0;
-      regions.slice(0, 15).forEach((region: SearchRegion) => {
+    // 3. Draw Hexagonal Search Cells connected to Causality Model
+    if ((activeToggles.hexGrid || activeToggles.viabilityHeatmap) && regions && regions.length > 0) {
+      regions.slice(0, 18).forEach((region: SearchRegion) => {
         const latlngs = region.cell.boundary.map((p: GeoPosition) => [p.lat, p.lon] as [number, number]);
-        const strength = Math.min(1.0, Math.max(0.2, region.score / topScore));
+        const report = evaluateCellViability(region.cell, activeWeather, activeTacticalTeams);
+        const isSelected = selectedHexId === region.cell.cell_id;
+
+        // Color coding from causality model
+        let strokeColor = '#0B6758';
+        let fillColor = '#57BCAE';
+        let fillOpacity = 0.25;
+
+        if (activeToggles.viabilityHeatmap) {
+          switch (report.viability) {
+            case 'VIABLE':
+              strokeColor = '#0B6758';
+              fillColor = '#10B981';
+              fillOpacity = 0.32;
+              break;
+            case 'DEGRADED':
+              strokeColor = '#D97706';
+              fillColor = '#F59E0B';
+              fillOpacity = 0.35;
+              break;
+            case 'RESTRICTED':
+              strokeColor = '#EA580C';
+              fillColor = '#F97316';
+              fillOpacity = 0.4;
+              break;
+            case 'BLOCKED':
+              strokeColor = '#DC2626';
+              fillColor = '#EF4444';
+              fillOpacity = 0.45;
+              break;
+          }
+        }
+
+        if (isSelected) {
+          strokeColor = '#FFFFFF';
+          fillColor = '#0B6758';
+          fillOpacity = 0.6;
+        }
 
         const polygon = L.polygon(latlngs, {
-          color: '#0B6758',
-          weight: 1.5,
-          opacity: 0.9,
-          fillColor: '#57BCAE',
-          fillOpacity: 0.15 + 0.35 * strength,
+          color: strokeColor,
+          weight: isSelected ? 3 : 1.5,
+          opacity: 0.95,
+          fillColor: fillColor,
+          fillOpacity: fillOpacity,
         });
 
-        polygon.bindTooltip(
-          `Cell #${region.rank} · ${(region.score * 100).toFixed(1)}% score<br/>${region.cell.terrain.toLowerCase()}`,
-          {
-            sticky: true,
-            className: 'bg-[#1C2E2A] text-white text-xs px-2 py-1 rounded shadow',
-          }
-        );
+        // Hover Tooltip with Causality Breakdown
+        const tooltipContent = `
+          <div style="font-family: sans-serif; min-width: 170px;">
+            <div style="font-weight: bold; font-size: 11px; color: #1C2E2A; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #E2E8E5; padding-bottom: 3px; margin-bottom: 4px;">
+              <span>Hex ${region.cell.cell_id}</span>
+              <span style="font-size: 10px; padding: 1px 5px; border-radius: 4px; font-weight: bold; background: ${
+                report.viability === 'VIABLE' ? '#E1ECE8; color: #0B6758' : report.viability === 'DEGRADED' ? '#FEF3DD; color: #9A690B' : '#FEE2E2; color: #DC2626'
+              }">${report.viability} (${report.overall_score}%)</span>
+            </div>
+            <div style="font-size: 10px; color: #5A706A; margin-bottom: 2px;">
+              Elevation: <b>${report.terrain.elevation_m}m</b> · Slope: <b>${report.terrain.slope_deg}°</b>
+            </div>
+            <div style="font-size: 10px; color: #5A706A; margin-bottom: 3px;">
+              Substrate: <b>${report.terrain.substrate}</b> (${report.terrain.exposure_level} exposure)
+            </div>
+            <div style="font-size: 10px; color: #1C2E2A; font-weight: 600; line-height: 1.2;">
+              ${report.primary_recommendation}
+            </div>
+            <div style="font-size: 9px; color: #0B6758; font-weight: bold; margin-top: 4px; text-transform: uppercase;">
+              Click hexagon to inspect teams & gear
+            </div>
+          </div>
+        `;
+
+        polygon.bindTooltip(tooltipContent, {
+          sticky: true,
+          className: 'bg-white text-[#1C2E2A] border border-[#E2E8E5] p-2 rounded-lg shadow-md',
+        });
+
+        // Interactive Click to Inspect
+        if (onSelectHex) {
+          polygon.on('click', () => {
+            onSelectHex(region.cell, report);
+          });
+        }
+
         layers.addLayer(polygon);
+
+        // Highlight selected cell with distinct pulse circle center
+        if (isSelected) {
+          const centerMarker = L.circleMarker([region.cell.centre.lat, region.cell.centre.lon], {
+            radius: 6,
+            color: '#FFFFFF',
+            fillColor: '#0B6758',
+            fillOpacity: 1,
+            weight: 2,
+          });
+          layers.addLayer(centerMarker);
+        }
       });
     }
 
-    // 4. Draw Data Sources footprints (UAV flight strips)
-    dataSources.forEach((source: DataSourceAvailability) => {
-      if (source.source === 'UAV') {
-        source.observations.slice(0, 4).forEach((obs: Observation) => {
-          if (obs.footprint && obs.footprint.length >= 3) {
-            const latlngs = obs.footprint.map((p: GeoPosition) => [p.lat, p.lon] as [number, number]);
-            const footprintPoly = L.polygon(latlngs, {
-              color: '#34C759',
-              weight: 1.5,
-              dashArray: '4, 4',
-              fillColor: '#86EFAC',
-              fillOpacity: 0.2,
-            });
-            footprintPoly.bindTooltip(`UAV Flight Survey Strip · ${obs.platform_id}`, {
-              sticky: true,
-              className: 'bg-[#1C2E2A] text-white text-xs px-2 py-1 rounded',
-            });
-            layers.addLayer(footprintPoly);
-          }
-        });
-      }
-    });
+    // 4. Draw Breadcrumb Search Tracks if toggled
+    if (activeToggles.teamTracks && activeTacticalTeams.length > 0) {
+      activeTacticalTeams.forEach((t) => {
+        if (t.breadcrumbs && t.breadcrumbs.length > 1) {
+          const points = t.breadcrumbs.map((p) => [p.lat, p.lon] as [number, number]);
+          const trackLine = L.polyline(points, {
+            color: t.type === 'AIR_UAV' ? '#16A34A' : t.type === 'K9_UNIT' ? '#9A690B' : '#0B6758',
+            weight: 2.5,
+            dashArray: '4, 6',
+            opacity: 0.8,
+          });
+          trackLine.bindTooltip(`Track: Team ${t.callsign} (${t.breadcrumbs.length} check-ins)`, {
+            sticky: true,
+            className: 'bg-[#1C2E2A] text-white text-[10px] px-2 py-0.5 rounded',
+          });
+          layers.addLayer(trackLine);
+        }
+      });
+    }
 
-    // 5. Draw Candidates (e.g. C-01)
+    // 5. Draw UAV Flight Corridor & Sensor Swath if toggled
+    if (activeToggles.uavFlightPath) {
+      dataSources.forEach((source: DataSourceAvailability) => {
+        if (source.source === 'UAV') {
+          source.observations.slice(0, 4).forEach((obs: Observation) => {
+            if (obs.footprint && obs.footprint.length >= 3) {
+              const latlngs = obs.footprint.map((p: GeoPosition) => [p.lat, p.lon] as [number, number]);
+              const footprintPoly = L.polygon(latlngs, {
+                color: '#16A34A',
+                weight: 1.5,
+                dashArray: '3, 4',
+                fillColor: '#86EFAC',
+                fillOpacity: 0.18,
+              });
+              footprintPoly.bindTooltip(`UAV FLIR Sensor Swath · ${obs.platform_id}`, {
+                sticky: true,
+                className: 'bg-[#1C2E2A] text-white text-xs px-2 py-1 rounded',
+              });
+              layers.addLayer(footprintPoly);
+            }
+          });
+        }
+      });
+    }
+
+    // 6. Draw Candidates (e.g. C-01)
     candidates.forEach((cand) => {
       const cMarker = L.marker([cand.position.lat, cand.position.lon], {
         icon: createEvidenceIcon(`Candidate ${cand.id}`),
       });
       cMarker.bindTooltip(
         `<b>Candidate ${cand.id}</b><br/>${cand.platform_id} · ${cand.frame_ref}<br/>${cand.description}`,
-        { sticky: true, className: 'bg-white text-[#1C2E2A] border border-[#F3D794] text-xs px-2 py-1.5 rounded shadow' }
+        {
+          sticky: true,
+          className: 'bg-white text-[#1C2E2A] border border-[#F3D794] text-xs px-2 py-1.5 rounded shadow',
+        }
       );
       layers.addLayer(cMarker);
     });
 
-    // 6. Draw Teams
-    if (showSectors && teams.length > 0) {
-      // Position Team Alpha in Sector A
-      const teamAPos = [pinLocation.lat + 0.012, pinLocation.lon + 0.005] as [number, number];
-      const markerA = L.marker(teamAPos, {
-        icon: createTeamIcon('Alpha', 'Sector A'),
-      });
-      layers.addLayer(markerA);
+    // 7. Draw Tactical Teams GPS Markers if toggled
+    if (activeToggles.teamPositions && activeTacticalTeams.length > 0) {
+      activeTacticalTeams.forEach((team) => {
+        const marker = L.marker([team.position.lat, team.position.lon], {
+          icon: createTacticalTeamIcon(team),
+        });
 
-      // Position Team Bravo in Sector B
-      const teamBPos = [pinLocation.lat - 0.01, pinLocation.lon + 0.006] as [number, number];
-      const markerB = L.marker(teamBPos, {
-        icon: createTeamIcon('Bravo', 'Sector B'),
+        marker.bindTooltip(
+          `<b>Team ${team.callsign} (${team.personnel} pers)</b><br/>${team.sector}<br/>${team.currentTask}<br/>Radio: ${team.radioChannel}`,
+          {
+            sticky: true,
+            className: 'bg-white text-[#1C2E2A] border border-[#E2E8E5] text-xs px-2 py-1.5 rounded shadow',
+          }
+        );
+        layers.addLayer(marker);
       });
-      layers.addLayer(markerB);
     }
 
-    // 7. Draw Last Known Position Pin
+    // 8. Draw Terrain Hazard Markers if toggled
+    if (activeToggles.terrainHazards) {
+      // Pen y Fan crags & Corn Du high scarp hazard markers
+      const hazards = [
+        {
+          lat: 51.883,
+          lon: -3.44,
+          label: 'Craig Cwm Llwch Crag (45° Scarp - Ropes Required)',
+        },
+        {
+          lat: 51.879,
+          lon: -3.45,
+          label: 'Scree Gully (Paw Laceration & Stonefall Hazard)',
+        },
+      ];
+
+      hazards.forEach((h) => {
+        const hMarker = L.circleMarker([h.lat, h.lon], {
+          radius: 7,
+          color: '#DC2626',
+          fillColor: '#FEE2E2',
+          fillOpacity: 0.9,
+          weight: 2,
+        });
+        hMarker.bindTooltip(`<b>Hazard:</b> ${h.label}`, {
+          sticky: true,
+          className: 'bg-[#DC2626] text-white text-xs px-2 py-1 rounded shadow',
+        });
+        layers.addLayer(hMarker);
+      });
+    }
+
+    // 9. Draw Last Known Position Pin
     if (pin) {
       const marker = L.marker([pin.lat, pin.lon], {
         icon: createPinIcon(pinLabel || 'Last Known Location'),
@@ -328,7 +520,7 @@ export const OsmMap: React.FC<OsmMapProps> = ({
       layers.addLayer(marker);
     }
 
-    // Auto-fit if rings exist
+    // Auto-fit bounds on first load if rings exist
     if (!isPicker && rings.length > 0 && mapInstanceRef.current) {
       const outerRing = rings.reduce((max, r) => (r.radius_m > max.radius_m ? r : max), rings[0]);
       if (outerRing) {
@@ -336,7 +528,20 @@ export const OsmMap: React.FC<OsmMapProps> = ({
         map.fitBounds(bounds, { padding: [24, 24] });
       }
     }
-  }, [pin?.lat, pin?.lon, pinLabel, rings, regions, dataSources, teams, candidates, showSectors, isPicker]);
+  }, [
+    pin?.lat,
+    pin?.lon,
+    pinLabel,
+    rings,
+    regions,
+    dataSources,
+    activeTacticalTeams,
+    candidates,
+    activeToggles,
+    activeWeather,
+    selectedHexId,
+    isPicker,
+  ]);
 
   const handleZoomIn = () => {
     mapInstanceRef.current?.zoomIn();
@@ -348,9 +553,9 @@ export const OsmMap: React.FC<OsmMapProps> = ({
 
   return (
     <div className={`relative ${className} overflow-hidden rounded-xl border border-[#E2E8E5] bg-[#F4F6F5]`}>
-      <div ref={mapContainerRef} className="w-full h-full min-h-[280px]" />
+      <div ref={mapContainerRef} className="w-full h-full min-h-[300px]" />
 
-      {/* AberTech Map Zoom Controls */}
+      {/* Map Zoom Controls */}
       <div className="absolute right-3 top-3 z-[400] flex flex-col bg-white border border-[#E2E8E5] rounded-lg shadow-sm overflow-hidden">
         <button
           type="button"
@@ -373,7 +578,25 @@ export const OsmMap: React.FC<OsmMapProps> = ({
       {/* Map Legend */}
       {showLegend && (
         <div className="absolute left-3 bottom-3 z-[400] bg-white/95 backdrop-blur-xs border border-[#E2E8E5] rounded-lg px-2.5 py-2 shadow-xs flex flex-col gap-1 text-[11px] text-[#1C2E2A]">
-          {showSectors ? (
+          {activeToggles.viabilityHeatmap ? (
+            <>
+              <div className="text-[10px] font-bold uppercase tracking-wider text-[#5A706A] border-b border-[#E2E8E5] pb-0.5 mb-0.5">
+                Causality Viability
+              </div>
+              <div className="flex items-center gap-1.5 font-medium text-[#0B6758]">
+                <span className="w-2.5 h-2.5 rounded-sm bg-[#10B981]" />
+                <span>Viable (&gt;75%)</span>
+              </div>
+              <div className="flex items-center gap-1.5 font-medium text-[#D97706]">
+                <span className="w-2.5 h-2.5 rounded-sm bg-[#F59E0B]" />
+                <span>Degraded (45-74%)</span>
+              </div>
+              <div className="flex items-center gap-1.5 font-medium text-[#DC2626]">
+                <span className="w-2.5 h-2.5 rounded-sm bg-[#EF4444]" />
+                <span>Restricted / Blocked (&lt;45%)</span>
+              </div>
+            </>
+          ) : activeToggles.sectors ? (
             <>
               <div className="flex items-center gap-1.5 font-semibold text-[#0B6758]">
                 <span className="w-2.5 h-2.5 rounded-sm bg-[#0B6758]" />
@@ -382,10 +605,6 @@ export const OsmMap: React.FC<OsmMapProps> = ({
               <div className="flex items-center gap-1.5 font-semibold text-[#269584]">
                 <span className="w-2.5 h-2.5 rounded-sm bg-[#269584]" />
                 <span>Sector B · Southern Drainage</span>
-              </div>
-              <div className="flex items-center gap-1.5 text-[#9A690B]">
-                <span className="w-2.5 h-2.5 rounded-full bg-[#F5A623]" />
-                <span>Candidate C-01 (UAV)</span>
               </div>
             </>
           ) : (

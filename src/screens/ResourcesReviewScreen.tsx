@@ -11,9 +11,20 @@ import {
   Compass,
   Clock,
   Layers,
+  Plane,
+  Dog,
+  Anchor,
+  Wrench,
+  AlertTriangle,
 } from 'lucide-react';
 import { Card, PrimaryButton, SecondaryButton, StatusBadge, StepHeader } from '../components/Common';
-import { Rescue } from '../types';
+import { DetailedWeatherReport, Rescue, WeatherScenarioKey } from '../types';
+import { QuickWeatherWidget } from '../components/QuickWeatherWidget';
+import {
+  DEFAULT_TACTICAL_TEAMS,
+  evaluateCellViability,
+  WEATHER_PRESETS,
+} from '../core/CausalityModel';
 
 interface ResourcesReviewScreenProps {
   rescue: Rescue;
@@ -28,19 +39,28 @@ export const ResourcesReviewScreen: React.FC<ResourcesReviewScreenProps> = ({
 }) => {
   const [assumptionsChecked, setAssumptionsChecked] = useState(rescue.assumptions_reviewed || false);
   const [radiosChecked, setRadiosChecked] = useState(rescue.radio_allocations_confirmed || false);
-
-  const weather = rescue.plan?.weather || {
-    wind_ms: 11.2,
-    gust_ms: 15.4,
-    precipitation_mm_h: 0.8,
-    visibility_m: 3200,
-    temperature_c: 8.5,
-    cloud_cover_pct: 65,
-    daylight: true,
-    source: 'Bannau station telemetry',
-  };
+  const [weather, setWeather] = useState<DetailedWeatherReport>(WEATHER_PRESETS.BASELINE);
 
   const isConfirmed = assumptionsChecked && radiosChecked;
+
+  // Evaluate causality on primary search cells
+  const sampleCell = rescue.plan?.regions?.[0]?.cell || {
+    cell_id: 'hex:0:0',
+    centre: rescue.last_known_location,
+    boundary: [],
+    terrain: 'OPEN_MOORLAND' as const,
+    area_km2: 1.2,
+  };
+
+  const causalityReport = evaluateCellViability(sampleCell, weather, DEFAULT_TACTICAL_TEAMS);
+
+  const handleSelectScenario = (key: WeatherScenarioKey) => {
+    setWeather(WEATHER_PRESETS[key]);
+  };
+
+  const handleUpdateWeather = (updated: DetailedWeatherReport) => {
+    setWeather(updated);
+  };
 
   return (
     <div className="flex-1 flex flex-col bg-[#F4F6F5] overflow-y-auto">
@@ -50,57 +70,22 @@ export const ResourcesReviewScreen: React.FC<ResourcesReviewScreenProps> = ({
         missionRef={rescue.mission_reference}
       />
 
-      <div className="p-4 sm:p-6 max-w-4xl mx-auto w-full space-y-6">
+      <div className="p-4 sm:p-6 max-w-5xl mx-auto w-full space-y-5">
         <div>
           <h1 className="text-xl sm:text-2xl font-black text-[#1C2E2A] tracking-tight">
-            Resources & commander confirmation
+            Resources & Causality Feasibility Sign-off
           </h1>
           <p className="text-xs text-[#5A706A] mt-0.5">
-            Step 6 of 9 · Verify resource feasibility and confirm radio allocations before deploying teams
+            Step 6 of 9 · Verify resource feasibility and confirm radio allocations using real-time causality model
           </p>
         </div>
 
-        {/* Live Weather Telemetry Banner */}
-        <Card className="bg-white border-[#E2E8E5]">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#E2E8E5] pb-3 mb-3">
-            <div className="flex items-center gap-2">
-              <Wind size={18} className="text-[#0B6758]" />
-              <span className="text-xs font-bold uppercase tracking-wider text-[#1C2E2A]">
-                Field Weather Telemetry (Storey Arms Station)
-              </span>
-            </div>
-            <span className="text-[11px] font-mono text-[#5A706A]">
-              Updated 12:25 UTC · Daylight active
-            </span>
-          </div>
-
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
-            <div className="p-2.5 bg-[#F4F6F5] rounded-lg border border-[#E2E8E5]">
-              <span className="text-[#5A706A] block text-[11px]">Sustained Wind / Gust</span>
-              <span className="font-bold text-[#1C2E2A] text-sm mt-0.5 block font-mono">
-                {weather.wind_ms} m/s <span className="text-[#9A690B]">({weather.gust_ms} g)</span>
-              </span>
-            </div>
-            <div className="p-2.5 bg-[#F4F6F5] rounded-lg border border-[#E2E8E5]">
-              <span className="text-[#5A706A] block text-[11px]">Visibility</span>
-              <span className="font-bold text-[#1C2E2A] text-sm mt-0.5 block font-mono">
-                {weather.visibility_m.toLocaleString()} m
-              </span>
-            </div>
-            <div className="p-2.5 bg-[#F4F6F5] rounded-lg border border-[#E2E8E5]">
-              <span className="text-[#5A706A] block text-[11px]">Temperature</span>
-              <span className="font-bold text-[#1C2E2A] text-sm mt-0.5 block font-mono">
-                {weather.temperature_c}°C
-              </span>
-            </div>
-            <div className="p-2.5 bg-[#F4F6F5] rounded-lg border border-[#E2E8E5]">
-              <span className="text-[#5A706A] block text-[11px]">Cloud Ceiling</span>
-              <span className="font-bold text-[#1C2E2A] text-sm mt-0.5 block font-mono">
-                {weather.cloud_cover_pct}%
-              </span>
-            </div>
-          </div>
-        </Card>
+        {/* Quick Weather Report & Live Atmospheric Constraints */}
+        <QuickWeatherWidget
+          weather={weather}
+          onSelectScenario={handleSelectScenario}
+          onUpdateWeather={handleUpdateWeather}
+        />
 
         {/* Resource Allocation & Teams */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
@@ -109,73 +94,87 @@ export const ResourcesReviewScreen: React.FC<ResourcesReviewScreenProps> = ({
             <div className="flex items-center justify-between border-b border-[#E2E8E5] pb-2">
               <span className="text-xs font-bold uppercase tracking-wider text-[#1C2E2A] flex items-center gap-1.5">
                 <Users size={16} className="text-[#0B6758]" />
-                <span>Recommended Team Allocation</span>
+                <span>Tactical Asset Viability (Causality Evaluated)</span>
               </span>
-              <StatusBadge type="green" label="14 personnel" />
-            </div>
-
-            <div className="space-y-3">
-              <div className="p-3 bg-[#F4F6F5] rounded-lg border border-[#E2E8E5]">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold text-[#1C2E2A]">Team Alpha · 8 Searchers</span>
-                  <span className="text-[11px] font-mono text-[#0B6758] font-bold">VHF Ch 1</span>
-                </div>
-                <div className="text-xs text-[#5A706A] mt-1">
-                  Sector A · Northern path hasty sweep towards Corn Du
-                </div>
-                <div className="text-[11px] text-[#5A706A] mt-1 font-mono">
-                  Target speed: 1.2 km/h · 4h endurance
-                </div>
-              </div>
-
-              <div className="p-3 bg-[#F4F6F5] rounded-lg border border-[#E2E8E5]">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold text-[#1C2E2A]">Team Bravo · 6 Searchers</span>
-                  <span className="text-[11px] font-mono text-[#0B6758] font-bold">VHF Ch 2</span>
-                </div>
-                <div className="text-xs text-[#5A706A] mt-1">
-                  Sector B · Southern drainage search line
-                </div>
-                <div className="text-[11px] text-[#5A706A] mt-1 font-mono">
-                  Target speed: 0.8 km/h · 4h endurance
-                </div>
-              </div>
-            </div>
-          </Card>
-
-          {/* Column 2: Equipment Viability Rules */}
-          <Card className="space-y-4">
-            <div className="flex items-center justify-between border-b border-[#E2E8E5] pb-2">
-              <span className="text-xs font-bold uppercase tracking-wider text-[#1C2E2A] flex items-center gap-1.5">
-                <Radio size={16} className="text-[#0B6758]" />
-                <span>Equipment Viability Checks</span>
-              </span>
-              <span className="text-[11px] text-[#5A706A]">Automated Rule Evaluator</span>
+              <StatusBadge
+                type={causalityReport.viability === 'VIABLE' ? 'green' : 'amber'}
+                label={`${causalityReport.overall_score}% Viable`}
+              />
             </div>
 
             <div className="space-y-2.5 text-xs">
-              <div className="p-2.5 bg-[#F4F6F5] rounded-lg border border-[#E2E8E5] flex items-start justify-between gap-2">
-                <div>
-                  <div className="font-bold text-[#1C2E2A]">Ground Foot Teams</div>
-                  <div className="text-[11px] text-[#5A706A]">14 searchers available with VHF radios</div>
+              {causalityReport.team_assessments.slice(0, 5).map((team) => (
+                <div
+                  key={team.team_id}
+                  className="p-3 bg-[#F4F6F5] rounded-lg border border-[#E2E8E5] space-y-1"
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="font-bold text-xs text-[#1C2E2A]">
+                      Team {team.callsign}
+                    </span>
+                    <span
+                      className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${
+                        team.status === 'VIABLE'
+                          ? 'bg-[#E1ECE8] text-[#0B6758]'
+                          : team.status === 'DEGRADED'
+                          ? 'bg-[#FEF3DD] text-[#9A690B]'
+                          : 'bg-[#FEE2E2] text-[#DC2626]'
+                      }`}
+                    >
+                      {team.status}
+                    </span>
+                  </div>
+                  <div className="text-[11px] text-[#5A706A] leading-tight">
+                    {team.reason}
+                  </div>
+                  {team.viable && (
+                    <div className="text-[10px] text-[#0B6758] font-mono font-semibold pt-0.5">
+                      Estimated rate: {team.speed_kmh} km/h · {team.pod_pct}% POD
+                    </div>
+                  )}
                 </div>
-                <StatusBadge type="green" label="Ready" icon={<CheckCircle2 size={12} />} />
-              </div>
+              ))}
+            </div>
+          </Card>
 
-              <div className="p-2.5 bg-[#F4F6F5] rounded-lg border border-[#E2E8E5] flex items-start justify-between gap-2">
-                <div>
-                  <div className="font-bold text-[#1C2E2A]">UAV Recon (Visual / Thermal)</div>
-                  <div className="text-[11px] text-[#5A706A]">Wind 11.2 m/s near 12 m/s airframe limit</div>
-                </div>
-                <StatusBadge type="amber" label="Conditional" icon={<AlertCircle size={12} />} />
-              </div>
+          {/* Column 2: Equipment Suitability Checks */}
+          <Card className="space-y-4">
+            <div className="flex items-center justify-between border-b border-[#E2E8E5] pb-2">
+              <span className="text-xs font-bold uppercase tracking-wider text-[#1C2E2A] flex items-center gap-1.5">
+                <Wrench size={16} className="text-[#0B6758]" />
+                <span>Equipment Suitability Rules</span>
+              </span>
+              <span className="text-[11px] font-mono text-[#5A706A]">Real-Time Rules</span>
+            </div>
 
-              <div className="p-2.5 bg-[#F4F6F5] rounded-lg border border-[#E2E8E5] flex items-start justify-between gap-2">
-                <div>
-                  <div className="font-bold text-[#1C2E2A]">SARDA Trailing Dog Team</div>
-                  <div className="text-[11px] text-[#5A706A]">Scent age {Math.round(weather.temperature_c > 15 ? 12 : 36)}h cutoff; scree terrain blocked</div>
+            <div className="space-y-2.5 text-xs">
+              {causalityReport.equipment_assessments.map((eq) => (
+                <div
+                  key={eq.equipment}
+                  className="p-2.5 bg-[#F4F6F5] rounded-lg border border-[#E2E8E5] flex items-start justify-between gap-2"
+                >
+                  <div className="space-y-0.5">
+                    <div className="font-bold text-[#1C2E2A]">{eq.equipment}</div>
+                    <div className="text-[11px] text-[#5A706A] leading-tight">{eq.reason}</div>
+                  </div>
+                  <span
+                    className={`text-[10px] font-bold px-1.5 py-0.5 rounded shrink-0 ${
+                      eq.status === 'OPTIMAL'
+                        ? 'bg-[#E1ECE8] text-[#0B6758]'
+                        : eq.status === 'USABLE'
+                        ? 'bg-white text-[#1C2E2A] border border-[#E2E8E5]'
+                        : eq.status === 'DEGRADED'
+                        ? 'bg-[#FEF3DD] text-[#9A690B]'
+                        : 'bg-[#FEE2E2] text-[#DC2626]'
+                    }`}
+                  >
+                    {eq.status}
+                  </span>
                 </div>
-                <StatusBadge type="red" label="Blocked" icon={<XCircle size={12} />} />
+              ))}
+
+              <div className="p-3 bg-[#E1ECE8] rounded-lg border border-[#0B6758]/20 text-[11px] text-[#07483D] font-medium">
+                <strong>Model Directive:</strong> {causalityReport.primary_recommendation}
               </div>
             </div>
           </Card>
@@ -200,7 +199,7 @@ export const ResourcesReviewScreen: React.FC<ResourcesReviewScreenProps> = ({
               />
               <div className="text-xs text-[#1C2E2A] leading-relaxed">
                 <span className="font-bold block text-[#1C2E2A] mb-0.5">
-                  I have reviewed the model assumptions and initial search area
+                  I have reviewed the causality model assumptions and initial search area
                 </span>
                 Confirmed that the 3-hour window and on-foot wander parameters at Storey Arms form a
                 sensible initial allocation without confirming target presence.

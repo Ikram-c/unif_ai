@@ -1,6 +1,16 @@
 import React, { useState } from 'react';
-import { ArrowLeft, Server, RefreshCw } from 'lucide-react';
-import { SectionCard, SrScaffold } from '../components/Common';
+import {
+  ArrowLeft,
+  Server,
+  RefreshCw,
+  HardDrive,
+  ShieldCheck,
+  Moon,
+  Sun,
+  Map,
+  CheckCircle2,
+} from 'lucide-react';
+import { Card, PrimaryButton, SecondaryButton, StepHeader } from '../components/Common';
 import { rescueRepository } from '../data/RescueRepository';
 import { settingsStore } from '../data/SettingsStore';
 
@@ -13,8 +23,6 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({ onBack }) => {
   const [urlDraft, setUrlDraft] = useState(settings.baseUrl);
   const [testing, setTesting] = useState(false);
   const [testResult, setTestResult] = useState<string | null>(null);
-
-  const timeZones = ['UTC', 'Europe/London', 'Local'];
 
   const handleSaveAndTest = async () => {
     setTesting(true);
@@ -32,134 +40,183 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({ onBack }) => {
     setTestResult(result.detail);
   };
 
-  const handleSetTimeZone = (tz: string) => {
-    settingsStore.update((s) => ({ ...s, timeZone: tz }));
+  const handleToggleDarkMode = (dark: boolean) => {
+    settingsStore.update((s) => ({ ...s, darkMode: dark }));
     setSettings(settingsStore.settings);
   };
 
   return (
-    <SrScaffold
-      topBar={
-        <div className="w-full flex items-center gap-3 px-4 py-3 bg-[#5B5B5B] border-b border-white/10 shrink-0">
-          <button
-            type="button"
-            onClick={onBack}
-            className="p-1 text-white hover:text-[#D9D9D9] transition-colors"
-          >
-            <ArrowLeft size={22} />
-          </button>
-          <h2 className="text-white text-lg font-bold">Settings</h2>
-        </div>
-      }
-    >
-      <div className="flex-1 overflow-y-auto p-4 max-w-xl mx-auto w-full flex flex-col gap-4">
-        {/* 1. Cloud Server Configuration */}
-        <SectionCard title="Cloud server">
-          <div className="flex flex-col gap-2">
-            <label className="text-xs text-[#D9D9D9] font-medium">Base URL</label>
-            <div className="flex gap-2">
-              <input
-                type="text"
-                value={urlDraft}
-                onChange={(e) => setUrlDraft(e.target.value)}
-                placeholder="http://localhost:8000/"
-                className="flex-1 bg-[#2B2B2B] text-white px-3 py-2 rounded-lg border border-white/20 text-sm outline-none focus:border-[#6B5AA6]"
-              />
-            </div>
+    <div className="flex-1 flex flex-col bg-[#F4F6F5] overflow-y-auto">
+      <StepHeader stepNumber="SETTINGS" stepTitle="FIELD HARDWARE & RETENTION" />
 
-            <div className="flex flex-wrap gap-2 mt-1">
-              <button
-                type="button"
+      <div className="p-4 sm:p-6 max-w-2xl mx-auto w-full space-y-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-xl sm:text-2xl font-black text-[#1C2E2A] tracking-tight">
+              Settings & Hardware
+            </h1>
+            <p className="text-xs text-[#5A706A] mt-0.5">
+              Device tag ABER-04 · Local flash storage and sync gateway
+            </p>
+          </div>
+          <SecondaryButton onClick={onBack} icon={<ArrowLeft size={16} />}>
+            Back
+          </SecondaryButton>
+        </div>
+
+        {/* 1. Hardware & Map Pack Card */}
+        <Card className="space-y-4">
+          <div className="flex items-center gap-2 border-b border-[#E2E8E5] pb-2">
+            <HardDrive size={18} className="text-[#0B6758]" />
+            <h2 className="text-xs font-bold uppercase tracking-wider text-[#1C2E2A]">
+              Assigned Field Hardware & Offline Packs
+            </h2>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3 text-xs">
+            <div className="p-3 bg-[#F4F6F5] rounded-lg border border-[#E2E8E5]">
+              <span className="text-[#5A706A] block text-[11px]">Device Hardware Tag</span>
+              <span className="font-mono font-bold text-[#1C2E2A] text-sm mt-0.5 block">
+                {settings.deviceTag}
+              </span>
+            </div>
+            <div className="p-3 bg-[#F4F6F5] rounded-lg border border-[#E2E8E5]">
+              <span className="text-[#5A706A] block text-[11px]">Active Offline Map Pack</span>
+              <span className="font-bold text-[#0B6758] text-sm mt-0.5 block">
+                {settings.activeMapPack}
+              </span>
+            </div>
+          </div>
+        </Card>
+
+        {/* 2. Audit Retention Card (2 C.F.R. § 200.334) */}
+        <Card className="space-y-3">
+          <div className="flex items-center gap-2 border-b border-[#E2E8E5] pb-2">
+            <ShieldCheck size={18} className="text-[#0B6758]" />
+            <h2 className="text-xs font-bold uppercase tracking-wider text-[#1C2E2A]">
+              Statutory Grant Retention (2 C.F.R. § 200.334)
+            </h2>
+          </div>
+
+          <div className="flex items-center justify-between p-3 bg-[#E1ECE8] text-[#0B6758] rounded-lg text-xs">
+            <div>
+              <span className="font-bold block">3-Year Mandatory Audit Retention</span>
+              <span className="text-[11px] opacity-90">
+                All incident creation, radio log entries, and team sign-offs are sealed in flash.
+              </span>
+            </div>
+            <span className="font-mono font-bold text-sm bg-white px-2.5 py-1 rounded shadow-2xs">
+              3 Years
+            </span>
+          </div>
+        </Card>
+
+        {/* 3. Appearance Mode (Light / Dark) */}
+        <Card className="space-y-3">
+          <div className="flex items-center justify-between border-b border-[#E2E8E5] pb-2">
+            <div className="flex items-center gap-2">
+              <Sun size={18} className="text-[#0B6758]" />
+              <h2 className="text-xs font-bold uppercase tracking-wider text-[#1C2E2A]">
+                Field Display Appearance
+              </h2>
+            </div>
+            <span className="text-[11px] text-[#5A706A]">High-contrast daylight mode</span>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <button
+              type="button"
+              onClick={() => handleToggleDarkMode(false)}
+              className={`p-3 rounded-lg border text-left flex items-center justify-between transition-all ${
+                !settings.darkMode
+                  ? 'border-[#0B6758] bg-[#E1ECE8] text-[#0B6758] font-bold'
+                  : 'border-[#E2E8E5] bg-white text-[#1C2E2A] hover:bg-[#F4F6F5]'
+              }`}
+            >
+              <div className="flex items-center gap-2">
+                <Sun size={16} />
+                <span className="text-xs">Daylight Light (Default)</span>
+              </div>
+              {!settings.darkMode && <CheckCircle2 size={16} />}
+            </button>
+
+            <button
+              type="button"
+              onClick={() => handleToggleDarkMode(true)}
+              className={`p-3 rounded-lg border text-left flex items-center justify-between transition-all ${
+                settings.darkMode
+                  ? 'border-[#0B6758] bg-[#1C2E2A] text-white font-bold'
+                  : 'border-[#E2E8E5] bg-white text-[#1C2E2A] hover:bg-[#F4F6F5]'
+              }`}
+            >
+              <div className="flex items-center gap-2">
+                <Moon size={16} />
+                <span className="text-xs">Night Ops Dark</span>
+              </div>
+              {settings.darkMode && <CheckCircle2 size={16} className="text-[#57BCAE]" />}
+            </button>
+          </div>
+        </Card>
+
+        {/* 4. Gateway & Standalone Demo Toggle */}
+        <Card className="space-y-4">
+          <div className="flex items-center justify-between border-b border-[#E2E8E5] pb-2">
+            <div className="flex items-center gap-2">
+              <Server size={18} className="text-[#0B6758]" />
+              <h2 className="text-xs font-bold uppercase tracking-wider text-[#1C2E2A]">
+                Base Station Gateway URL
+              </h2>
+            </div>
+            <span className="text-[11px] text-[#5A706A]">Optional cloud sync</span>
+          </div>
+
+          <div className="space-y-2">
+            <input
+              type="text"
+              value={urlDraft}
+              onChange={(e) => setUrlDraft(e.target.value)}
+              placeholder="http://localhost:8000/"
+              className="w-full px-3.5 py-2.5 rounded-lg border border-[#E2E8E5] text-xs font-mono text-[#1C2E2A] focus:outline-none focus:border-[#0B6758] bg-[#F4F6F5]"
+            />
+
+            <div className="flex items-center gap-2 pt-1">
+              <SecondaryButton
                 onClick={handleSaveAndTest}
                 disabled={testing}
-                className="bg-[#E6DEF5] text-[#141414] font-bold text-xs px-3.5 py-1.5 rounded-lg hover:bg-white active:scale-95 transition-all shadow flex items-center gap-1.5"
+                icon={testing ? <RefreshCw size={13} className="animate-spin" /> : undefined}
               >
-                {testing && <RefreshCw size={12} className="animate-spin" />}
-                <span>Save & test</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => setUrlDraft('http://localhost:8000/')}
-                className="bg-[#2B2B2B] text-white border border-white/20 text-xs px-3 py-1.5 rounded-lg hover:bg-[#323232] transition-colors"
-              >
-                Localhost default
-              </button>
+                {testing ? 'Testing connection...' : 'Save & probe gateway'}
+              </SecondaryButton>
+              <SecondaryButton onClick={() => setUrlDraft('http://localhost:8000/')}>
+                Reset to local
+              </SecondaryButton>
             </div>
 
             {testResult && (
-              <p className="text-xs text-[#F2D06B] font-medium mt-1">{testResult}</p>
+              <div className="p-2.5 rounded-md bg-[#FEF3DD] text-[#9A690B] text-xs font-mono mt-2">
+                {testResult}
+              </div>
             )}
-
-            <p className="text-[11px] text-[#D9D9D9]/70 leading-relaxed mt-1">
-              The cloud server indexes satellite scenes, UAV flights and dashcam GPX-tagged
-              frames. When offline, the app seamlessly runs full offline models.
-            </p>
           </div>
-        </SectionCard>
 
-        {/* 2. Demo Mode Switch */}
-        <SectionCard title="Demo mode">
-          <div className="flex items-center justify-between py-1">
-            <div className="flex flex-col">
-              <span className="text-white text-sm font-semibold">Force demo data</span>
-              <span className="text-[#D9D9D9] text-xs">
-                Ignore remote server and use bundled Welsh datasets
-              </span>
-            </div>
-            <label className="relative inline-flex items-center cursor-pointer">
+          <div className="pt-2 border-t border-[#E2E8E5]">
+            <label className="flex items-center justify-between cursor-pointer">
+              <div>
+                <span className="text-xs font-bold text-[#1C2E2A] block">Force Standalone Demo Mode</span>
+                <span className="text-[11px] text-[#5A706A]">
+                  Bypass network polling and use high-fidelity bundled Welsh / Highland datasets
+                </span>
+              </div>
               <input
                 type="checkbox"
                 checked={settings.forceDemo}
                 onChange={(e) => handleToggleDemo(e.target.checked)}
-                className="sr-only peer"
+                className="h-4 w-4 rounded accent-[#0B6758]"
               />
-              <div className="w-11 h-6 bg-[#2B2B2B] peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#34C759]" />
             </label>
           </div>
-        </SectionCard>
-
-        {/* 3. Default Time Zone */}
-        <SectionCard title="Default time zone">
-          <div className="flex gap-2 py-1">
-            {timeZones.map((tz) => (
-              <button
-                key={tz}
-                type="button"
-                onClick={() => handleSetTimeZone(tz)}
-                className={`flex-1 py-2 text-xs font-semibold rounded-lg border transition-all ${
-                  settings.timeZone === tz
-                    ? 'bg-[#6B5AA6] text-white border-[#E6DEF5]'
-                    : 'bg-[#2B2B2B] text-[#D9D9D9] border-white/10 hover:bg-[#323232]'
-                }`}
-              >
-                {tz}
-              </button>
-            ))}
-          </div>
-        </SectionCard>
-
-        {/* 4. Architectural Explanation */}
-        <SectionCard title="How the model works">
-          <p className="text-xs text-[#D9D9D9] leading-relaxed">
-            <strong>Pin + confirmed last-seen time</strong> establish the search window (
-            <em>now minus last seen</em>).
-          </p>
-          <p className="text-xs text-[#D9D9D9] leading-relaxed mt-1">
-            The window bounds a metadata query across indexed satellite scenes, UAV flights and
-            dashcam passes; each hit stores the OME-Zarr store and frame index so the small-object
-            detector opens only that specific chunk.
-          </p>
-          <p className="text-xs text-[#D9D9D9] leading-relaxed mt-1">
-            The travel mode and subject profile size the wander radius rings, hexagonal cells inside
-            are scored via 2D Gaussian decay with terrain weighting, weather at the pin determines
-            which equipment can deploy, and sweep rates calculate search party sizing.
-          </p>
-        </SectionCard>
-
-        <div className="text-center py-2 text-xs text-white/50">
-          SR Portal MVP · Designed by AberTech
-        </div>
+        </Card>
       </div>
-    </SrScaffold>
+    </div>
   );
 };

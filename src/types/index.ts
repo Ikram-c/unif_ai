@@ -102,6 +102,7 @@ export interface EquipmentAssessment {
   kind: EquipmentKind;
   viable: boolean;
   reason: string;
+  statusLabel?: 'Ready' | 'Conditional' | 'Blocked';
 }
 
 export interface TeamEstimate {
@@ -127,6 +128,49 @@ export interface SearchPlan {
   cell_source: string;
 }
 
+export interface TeamAllocation {
+  id: string;
+  name: string; // e.g. "Alpha", "Bravo"
+  personnel: number;
+  sector: string; // e.g. "Sector A · northern path", "Sector B · southern drainage"
+  task: string; // e.g. "Northern path sweep", "Drainage search"
+  status: 'Ready' | 'In progress' | 'Reconciled';
+  radio_check: string; // e.g. "12:24 UTC (6m ago)"
+}
+
+export interface EvidenceCandidate {
+  id: string; // e.g. "C-01"
+  source: DataSourceKind; // "UAV"
+  platform_id: string; // "UAV-01"
+  frame_ref: string; // "F0184"
+  captured_at_utc: string; // "2026-10-27T12:22:16Z"
+  position: GeoPosition;
+  distance_from_lkp_km: number;
+  bearing_from_lkp: string;
+  description: string;
+  status: 'unverified' | 'marked_for_field_verification' | 'rejected';
+  reviewer: string; // "C-01"
+  assigned_team?: string;
+  image_url?: string;
+}
+
+export interface AuditEvent {
+  time_utc: string; // e.g. "09:30", "12:10"
+  title: string;
+  details: string;
+  timestamp: string;
+}
+
+export interface MissionClosure {
+  outcome: string; // e.g. "Search suspended · subject not located"
+  notes: string;
+  alpha_reconciled: boolean;
+  bravo_reconciled: boolean;
+  equipment_reconciled: boolean;
+  closed_at_utc: string;
+  closed_by: string; // "Commander C-01"
+}
+
 export interface Rescue {
   id: string;
   status: RescueStatus;
@@ -138,6 +182,22 @@ export interface Rescue {
   time_zone: string;
   subject: SubjectProfile;
   plan?: SearchPlan | null;
+
+  // AberTech Field Suite properties from untilted.pdf:
+  mission_name: string; // e.g. "Bannau Brycheiniog"
+  mission_reference: string; // e.g. "SAR-026"
+  agency: string; // e.g. "Upland SAR · Example agency"
+  commander_reference: string; // e.g. "C-01"
+  subject_reference: string; // e.g. "Subject S-01"
+  terrain_type: string; // e.g. "Moorland / upland paths"
+  subject_context: string; // e.g. "S-01 · intended route unknown"
+  reported_uncertainty_m: number; // e.g. 100
+  assumptions_reviewed: boolean;
+  radio_allocations_confirmed: boolean;
+  allocated_teams: TeamAllocation[];
+  evidence_candidates: EvidenceCandidate[];
+  audit_events: AuditEvent[];
+  closure: MissionClosure | null;
 }
 
 export interface SearchWindowRequest {
@@ -179,4 +239,8 @@ export interface AppSettings {
   baseUrl: string;
   forceDemo: boolean;
   timeZone: string;
+  retentionYears: number; // 3-year 2 CFR 200 default
+  activeMapPack: string; // "Bannau map pack"
+  deviceTag: string; // "ABER-04"
+  darkMode: boolean; // Field appearance toggle
 }

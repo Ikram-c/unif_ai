@@ -1,0 +1,152 @@
+PRE-SEED PITCH DECK // JOBS-TO-BE-DONE ARCHITECTURE
+AberTech: Search & Rescue
+Compressing 500 km² blind wilderness searches into 1 km² targeted extractions within the first ten minutes.
+UNIFIED PLATFORM STACK
+SR Portal • CompareCompress • Cloud-DashCam • Vision Toolkit
+PRE-SEED IP VALUATION
+$1.25M – $3.0M+ (Enhanced PoC + Real Options)
+
+MACRO CATALYST // BANNAU BRYCHEINIOG & SCOTTISH HIGHLANDS (2019–2025)
+Surging Footfall, Shrinking Budgets
++51%
+Countryside Day-Trip Spend Growth (2025)
+Outdoor leisure jumped 30% across 83.9M Scottish day visits while Merthyr Tydfil peaks surged 51%.
+88%
+Brecon day-trippers (3.41M visits) spending £14/day while straining trails
+-17.1%
+Brecon direct tourism FTE drop alongside a frozen £3.11M core Park budget
+-67%
+VisitScotland rural infrastructure cut (£7.9M to £2.6M) despite £756M Highland spend
+
+THE PUSH OF STRUGGLE (F₁) // COST-SPEED-COVERAGE ASYMMETRY
+Why 500 km² Searches Fail
+75%–85% of technical tools fail adoption because they ignore the commander's end-to-end situational job.
+Physical Search Bottlenecks
+Data & Procurement Failures
+Rotorcraft Burn: $3,000–$10,000/hr (€8,000/hr EU) with 4-hour fuel limit.
+Sortie Bill: $10,000–$20,000 per flight ($15K–$150K per alpine rescue).
+Ground Pace: 0.5–1 acre/hr per searcher across hazardous terrain.
+Deprivation Clock: 48–72 hour survival window before mortality spikes.
+Demand Error: 70.4% resource overstatement without spatio-temporal bounds.
+False Alarms: Negative Value of Information (V_rel < 0) from ungrounded AI.
+Drone Hurdles: $150,000+/yr budget needed for automated CAD dispatch.
+OIG Clawbacks: $13.5B FEMA relief flagged for missing 2 C.F.R. § 200 logs.
+
+JOBS-TO-BE-DONE BLUEPRINT // 12-SCREEN PROOF OF CONCEPT
+Three Jobs in Ten Minutes
+JOB 1 // POC SCREENS 1–2
+Govern & Initialize Audit
+Four-tile mission dashboard enforcing 3-year 2 C.F.R. § 200.334 retention.
+JOB 2 // POC SCREENS 3–8 & 10
+Bound Deprivation Clock
+Location pin paired with mobility mode for UTC Δt windowing.
+JOB 3 // POC SCREENS 9, 11–12
+Pinpoint 1 km² Grid
+Tri-modal convergence across satellite radar, UAV, and DashCam telemetry.
+
+SR PORTAL CORE ENGINE // PURE KOTLIN & OFFLINE H3 TILING
+Kinematic Priors & Field Rules
+ON-FOOT SATURATION MODEL (d₅₀ = 3,000m, τ = 6.0h)
+Probability Contours: 50% (1.0×), 75% (1.8×), and 95% (4.0×) H3 hex rings.
+Terrain Weighting: 2D Gaussian decay scaled across Forest (1.1) and Moorland (1.0).
+Equipment Assessor: Automated Go/No-Go rules for UAV wind, dog scent age (≤36h), and cloud ceiling.
+Team Sizer & Resilience: 4-to-120 searcher allocation with 5s offline fallback polling.
+
+BOUNDED METADATA INDEXING // OME-ZARR & OPENCL BENCHMARKS
+Frame-Exact Metadata Queries
+Lazy OME-Zarr Chunk Lookup (SQLite eo_scenes & video_index):
+
+UNIFIED REPOSITORY ARCHITECTURE // SERVICE-DOMINANT RESOURCE INTEGRATION
+Three Engines Under One UI
+Fourier wave pre-filtering and dual-core CPU/OpenCL execution eliminate cloud GPU bottlenecks in cellular blackspots.
+REPO 01 // C++17 DESKTOP & EDGE
+CompareCompress
+Lossless RAM decoding on legacy laptops.
+REPO 02 // OME-ZARR TELEMETRY
+Cloud-DashCam
+Native 1440p GPX chunk streaming.
+REPO 03 // GJK & OPENCL CV
+Vision Toolkit + UAV
+GJK polygon pruning fixes 60% drift.
+
+OVERCOMING ADOPTION ANXIETY (F₃) // SECURITY & GDPR AUDIT
+Zero-Telemetry GDPR Security
+NASA/JPL Power of 10 Bounds
+Direct fork/execvp calls eliminate shell injection.
+GDPR Compliant by Design
+Volatile RAM EXIF handling without cloud telemetry.
+Strict YAML & Pixel Guards
+4 MiB config caps prevent memory exhaustion.
+Turnkey Grant Compliance
+Automated logs cut procurement cost overruns 29%.
+
+Operational Dimension
+Traditional SAR
+Unintegrated Repos
+Unified Atech Platform
+500 km² Grid Narrowing
+Days of blind sorties
+70.4% build-up error
+Minutes to 1 km² grid
+Aerial Operating Cost
+$1,500–$10,000 / hr
+€85/hr (VRAM bottleneck)
+€85 / hr (<$5/hr variable)
+Per-Mission Extraction
+$10,000–$20,000 / sortie
+False alarm bleed (V_rel < 0)
+$200–£500 localized callout
+Annual Drone/Tech Budget
+$150,000+ Large CAD tier
+High cloud GPU COGS
+Fits $15K–$100K agency tier
+2 C.F.R. § 200 Audit Trail
+Manual paper logs
+Unlinked media files
+Turnkey 3-year DRRA logs
+VALUE OF INFORMATION (0 < V_rel < 1) // AGENCY ROI BENCHMARKS
+Unit Economics & Cost Savings
+
+FOUNDER-MARKET FIT // CEFAS, BRITISH AIRWAYS & UPLAND FIELD TESTING
+Production & Field Validation
+ICES Journal (Feb 2026): Published cloud OME-Zarr architecture after presenting 2,000-otolith OpenCL pipeline at ICES 2024.
+Fleet & Aviation Pedigree: Deployed UK commercial fishing vessel monitoring patches and British Airways AI2 AWS telemetry.
+First-Hand Upland Testing: Validated canopy regrowth, uplift turbulence, and map errors across Waterfall Country and Iceland snowstorms.
+The Rockborne 7: Seven-specialist founding core operating on hyper-lean capital Discipline and multi-cloud startup credits.
+
+Valuation Stage & Metric
+Standalone Repos (V₁ + V₂ + V₃)
+Unified Atech Platform (PoC + 3 Repos)
+Multiple Band & Gross Margin
+2.8x SDE / 3.2x–5.4x EBITDA (~38%–44% GM)
+7.0x–11.0x+ EBITDA (53.5%+ Top-Quartile GM)
+Stage 1: Pre-Seed / Seed IP Value
+$250K – $725K (Code replacement cost)
+$1.25M – $3.0M+ (Enhanced PoC + Real Options)
+Stage 2: Early Commercial ($1M EBITDA)
+$3.43M – $6.93M (Net of 15% concentration cut)
+$7.0M – $11.0M+ EV (15–30 Agencies @ $25K–$75K)
+Stage 3: Scaled Regional ($3.5M EBITDA)
+$12.77M – $24.95M (60–100 Agencies)
+$24.5M – $38.5M+ EV (+ 2.3 BCR Surge Value)
+Stage 4: Multi-Sovereign Exit ($8M+ EBITDA)
+$30.0M – $58.6M
+$64.0M – $160.0M EV (12x–20x Recapitalization)
+VALUATION ARCHITECTURE // STANDALONE SUM VS. UNIFIED PLATFORM
+Platform Valuation Expansion
+
+ABERTECH PRE-SEED ROUND // 2026–2030 UPLAND DEPLOYMENT
+Invest in Ten-Minute Survival
+Converting 15–30 municipal and national park rescue authorities at $25K–$75K/yr to capture $1.0M ARR across supply-constrained uplands.
+$1.25M–$3M
+Pre-Seed IP Valuation
+2.3x BCR
+Adaptive Reserve Benefit-Cost Ratio
+60%–80%
+Cash-at-Close M&A Exit Structure
+
+Image Sources
+https://graffeg.com/cdn/shop/files/30-31BannauBrycheiniog_Wales.jpg?v=1723112686&width=1946
+Source: graffeg.com
+https://atlive-wp.s3.eu-west-2.amazonaws.com/wp-content/uploads/12-Braemar-Mountain-Rescue-Centre_Moxon-%C2%A9Moxon-Architects-Ltd.jpg
+Source: architecturetoday.co.uk

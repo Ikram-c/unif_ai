@@ -1,4 +1,4 @@
-import { AppSettings, ServerStatus } from '../types';
+import { AppSettings } from '../types';
 
 const SETTINGS_KEY = 'srportal_settings';
 
@@ -6,6 +6,10 @@ export const defaultSettings: AppSettings = {
   baseUrl: 'http://localhost:8000/',
   forceDemo: true, // Default to demo mode for standalone browser preview
   timeZone: 'UTC',
+  retentionYears: 3, // 3-year 2 CFR 200.334 audit retention
+  activeMapPack: 'Bannau map pack',
+  deviceTag: 'ABER-04',
+  darkMode: false,
 };
 
 export class SettingsStore {

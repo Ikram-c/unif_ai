@@ -1,4 +1,5 @@
 # Mountain Rescue Orchestration (SR Portal)
+<img width="577" height="947" alt="IMG_4506 (1) (1)" src="https://github.com/user-attachments/assets/6de471bb-ed98-4279-9f98-89c37f673ffe" />
 
 A tactical search-and-rescue (SAR) orchestration web application ported from the AberTech mountain rescue system into React, TypeScript, Vite, and Tailwind CSS.
 

@@ -13,6 +13,8 @@ import {
   AlertTriangle,
   Menu,
   X,
+  Globe,
+  Sparkles,
 } from 'lucide-react';
 import {
   AberTechBrand,
@@ -21,6 +23,7 @@ import {
   PrimaryButton,
   SecondaryButton,
 } from './components/Common';
+import { LandingPage } from './screens/LandingPage';
 import { MissionsScreen } from './screens/MissionsScreen';
 import { NewIncidentScreen } from './screens/NewIncidentScreen';
 import { LastKnownLocationScreen } from './screens/LastKnownLocationScreen';
@@ -40,6 +43,7 @@ export const App: React.FC = () => {
   const [rescues, setRescues] = useState<Rescue[]>(rescueRepository.allRescues);
   const [selectedRescueId, setSelectedRescueId] = useState<string>('SAR-026');
   const [currentStep, setCurrentStep] = useState<number>(1); // 1 through 9
+  const [isLandingPage, setIsLandingPage] = useState<boolean>(false);
   const [showSettings, setShowSettings] = useState<boolean>(false);
   const [showLogObservationModal, setShowLogObservationModal] = useState<boolean>(false);
   const [isBuildingModel, setIsBuildingModel] = useState<boolean>(false);
@@ -426,18 +430,42 @@ export const App: React.FC = () => {
           <AberTechBrand />
         </div>
 
+        {/* Landing Page & Pitch Highlight Button */}
+        <div className="p-3 pb-1 border-b border-[#E2E8E5]/70">
+          <button
+            type="button"
+            onClick={() => setIsLandingPage(true)}
+            className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-bold transition-all shadow-xs ${
+              isLandingPage
+                ? 'bg-[#0B6758] text-white ring-2 ring-[#86EFAC]'
+                : 'bg-gradient-to-r from-[#1C2E2A] to-[#142320] text-white hover:bg-[#253D37]'
+            }`}
+          >
+            <div className="flex items-center gap-2">
+              <Globe size={15} className="text-[#86EFAC]" />
+              <span>Landing Page & Pitch</span>
+            </div>
+            <span className="text-[10px] bg-[#86EFAC]/20 text-[#86EFAC] px-1.5 py-0.5 rounded font-mono font-bold">
+              MVP
+            </span>
+          </button>
+        </div>
+
         {/* Primary Step Navigation */}
         <div className="p-3 space-y-1">
           <div className="px-2 py-1 text-[11px] font-bold uppercase tracking-wider text-[#5A706A]">
             Field Navigation
           </div>
           {navItems.map((item) => {
-            const isActive = currentStep === item.step;
+            const isActive = !isLandingPage && currentStep === item.step;
             return (
               <button
                 key={item.step}
                 type="button"
-                onClick={() => setCurrentStep(item.step)}
+                onClick={() => {
+                  setIsLandingPage(false);
+                  setCurrentStep(item.step);
+                }}
                 className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-semibold transition-all ${
                   isActive
                     ? 'bg-[#E1ECE8] text-[#0B6758] shadow-2xs font-bold'
@@ -527,27 +555,65 @@ export const App: React.FC = () => {
 
       {/* 2. Main Content Area */}
       <div className="flex-1 flex flex-col h-full overflow-hidden">
-        {/* Top Dual Status Header with Persistence and Radio state */}
-        <div className="shrink-0">
-          <DualStatusHeader />
+        {/* Top Dual Status Header with Persistence, Radio state, and Pitch Toggle */}
+        <div className="shrink-0 flex items-center justify-between bg-[#F4F6F5] border-b border-[#E2E8E5] pr-3">
+          <div className="flex-1">
+            <DualStatusHeader />
+          </div>
+          <button
+            type="button"
+            onClick={() => setIsLandingPage(!isLandingPage)}
+            className={`hidden sm:flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-bold transition-all shadow-xs shrink-0 ${
+              isLandingPage
+                ? 'bg-[#0B6758] text-white hover:bg-[#07483D]'
+                : 'bg-white hover:bg-[#E1ECE8] text-[#0B6758] border border-[#0B6758]/30'
+            }`}
+          >
+            <Globe size={13} />
+            <span>{isLandingPage ? 'Exit to SAR Portal' : 'Landing Page & Pitch'}</span>
+          </button>
         </div>
 
         {/* Mobile App Bar Header (<1024px) */}
         <div className="lg:hidden shrink-0 flex items-center justify-between px-3 py-2 bg-white border-b border-[#E2E8E5]">
           <AberTechBrand />
-          <button
-            type="button"
-            onClick={() => setShowSettings(true)}
-            className="p-1.5 rounded-lg text-[#5A706A] hover:bg-[#F4F6F5]"
-            title="Settings"
-          >
-            <SettingsIcon size={18} />
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setIsLandingPage(!isLandingPage)}
+              className="px-2.5 py-1 rounded text-xs font-bold bg-[#E1ECE8] text-[#0B6758]"
+            >
+              {isLandingPage ? 'SAR Portal' : 'Pitch'}
+            </button>
+            <button
+              type="button"
+              onClick={() => setShowSettings(true)}
+              className="p-1.5 rounded-lg text-[#5A706A] hover:bg-[#F4F6F5]"
+              title="Settings"
+            >
+              <SettingsIcon size={18} />
+            </button>
+          </div>
         </div>
 
         {/* Active Screen Container */}
         <main className="flex-1 flex flex-col overflow-hidden relative">
-          {showSettings ? (
+          {isLandingPage ? (
+            <LandingPage
+              onLaunchOperation={() => {
+                setIsLandingPage(false);
+                setCurrentStep(7);
+              }}
+              onStartNewMission={() => {
+                setIsLandingPage(false);
+                setCurrentStep(2);
+              }}
+              onOpenStep={(step) => {
+                setIsLandingPage(false);
+                setCurrentStep(step);
+              }}
+            />
+          ) : showSettings ? (
             <SettingsScreen onBack={() => setShowSettings(false)} />
           ) : currentStep === 1 ? (
             <MissionsScreen

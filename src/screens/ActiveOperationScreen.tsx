@@ -12,6 +12,8 @@ import {
   ShieldAlert,
   Layers,
   CheckCircle2,
+  Search,
+  X,
 } from 'lucide-react';
 import {
   Card,
@@ -24,7 +26,14 @@ import { OsmMap } from '../components/OsmMap';
 import { MapOverlayControls } from '../components/MapOverlayControls';
 import { QuickWeatherWidget } from '../components/QuickWeatherWidget';
 import { TeamStatusSummaries } from '../components/TeamStatusSummaries';
+import {
+  TeamSearchFilterBar,
+  TeamStatusFilter,
+  TeamTypeFilter,
+} from '../components/TeamSearchFilterBar';
 import { CellCausalityInspector } from '../components/CellCausalityInspector';
+import { ProximityAlertIndicator } from '../components/ProximityAlertIndicator';
+import { MapTelematicsRibbon } from '../components/MapTelematicsRibbon';
 import {
   CellCausalityReport,
   DetailedWeatherReport,
@@ -59,6 +68,97 @@ export const ActiveOperationScreen: React.FC<ActiveOperationScreenProps> = ({
   const [tacticalTeams, setTacticalTeams] = useState<TacticalTeam[]>(DEFAULT_TACTICAL_TEAMS);
   const [mapCenter, setMapCenter] = useState<GeoPosition>(rescue.last_known_location);
   const [selectedTeamId, setSelectedTeamId] = useState<string | null>(null);
+
+  // Tactical team search and filter bar state
+  const [teamSearchQuery, setTeamSearchQuery] = useState<string>('');
+  const [teamStatusFilter, setTeamStatusFilter] = useState<TeamStatusFilter>('ALL');
+  const [teamTypeFilter, setTeamTypeFilter] = useState<TeamTypeFilter>('ALL');
+  const [isSimulatingLowBattery, setIsSimulatingLowBattery] = useState<boolean>(false);
+
+  // Toggle low battery simulation for live testing of commander triage
+  const handleToggleSimulateBatteryDrain = (teamId: string = 'team-alpha') => {
+    setIsSimulatingLowBattery((prev) => {
+      const next = !prev;
+      setTacticalTeams((teams) =>
+        teams.map((t) => {
+          if (t.id === teamId || t.callsign === 'Alpha') {
+            if (next) {
+              return {
+                ...t,
+                batteryPct: 18,
+                endurancePct: 18,
+                currentTask: '⚠️ BATTERY CRITICAL: Handheld GPS & thermal sensor drained (18%) · Battery swap advised',
+                telematics: {
+                  ...t.telematics!,
+                  batteryVoltage: 3.4,
+                },
+              };
+            } else {
+              return {
+                ...t,
+                batteryPct: undefined,
+                endurancePct: 92,
+                currentTask: 'Hasty path sweep towards Corn Du saddle',
+                telematics: {
+                  ...t.telematics!,
+                  batteryVoltage: undefined,
+                },
+              };
+            }
+          }
+          return t;
+        })
+      );
+
+      if (next) {
+        showToast('⚠️ BATTERY ALERT: Team Alpha power dropped to 18% (Critical battery warning triggered).');
+      } else {
+        showToast('Power restored: Team Alpha battery normalized to fresh charge.');
+      }
+
+      return next;
+    });
+  };
+
+  // Filter teams for map highlighting & summary roster
+  const filteredTacticalTeams = tacticalTeams.filter((team) => {
+    if (teamSearchQuery.trim()) {
+      const q = teamSearchQuery.toLowerCase().trim();
+      const matchName = team.name.toLowerCase().includes(q);
+      const matchCallsign = team.callsign.toLowerCase().includes(q);
+      const matchSector = team.sector.toLowerCase().includes(q);
+      const matchTask = team.currentTask.toLowerCase().includes(q);
+      const matchEquipment = team.carriedEquipment.some((eq) => eq.toLowerCase().includes(q));
+      const matchRadio = team.radioChannel.toLowerCase().includes(q);
+      const matchGrid = team.telematics?.osGridRef?.toLowerCase().includes(q);
+
+      if (!matchName && !matchCallsign && !matchSector && !matchTask && !matchEquipment && !matchRadio && !matchGrid) {
+        return false;
+      }
+    }
+
+    if (teamStatusFilter === 'MOVING') {
+      const isMoving = team.speedKmh > 0 && team.status !== 'Ready';
+      if (!isMoving) return false;
+    } else if (teamStatusFilter === 'STATIONARY') {
+      const isStationary = team.speedKmh === 0 || team.status === 'Ready' || team.status === 'Holding';
+      if (!isStationary) return false;
+    } else if (teamStatusFilter === 'LOW_BATTERY') {
+      const isLowBattery = (team.batteryPct !== undefined && team.batteryPct <= 25) || team.endurancePct <= 25;
+      if (!isLowBattery) return false;
+    } else if (teamStatusFilter === 'BREACH') {
+      if (!team.isDrifted) return false;
+    }
+
+    if (teamTypeFilter !== 'ALL') {
+      if (teamTypeFilter === 'GROUND' && team.type !== 'FOOT_HASTY' && team.type !== 'FOOT_GRID') return false;
+      if (teamTypeFilter === 'AIR' && team.type !== 'AIR_UAV' && team.type !== 'HELO') return false;
+      if (teamTypeFilter === 'K9' && team.type !== 'K9_UNIT') return false;
+      if (teamTypeFilter === 'TECH' && team.type !== 'TECH_ROPE') return false;
+    }
+
+    return true;
+  });
 
   // Map layer overlay toggles
   const [layerToggles, setLayerToggles] = useState<MapLayerToggles>({
@@ -149,6 +249,167 @@ export const ActiveOperationScreen: React.FC<ActiveOperationScreenProps> = ({
     showToast(`Team ${teamCallsign} deployed to Hexagon ${cellId}. Tasking broadcast via radio.`);
   };
 
+  // State for simulated boundary drift (MVP pitch demo)
+  const [isSimulatingDrift, setIsSimulatingDrift] = useState<boolean>(false);
+
+  // Toggle drift simulation for Team Bravo
+  const handleSimulateDriftToggle = () => {
+    setIsSimulatingDrift((prev) => {
+      const next = !prev;
+      setTacticalTeams((teams) =>
+        teams.map((t) => {
+          if (t.callsign === 'Bravo') {
+            if (next) {
+              return {
+                ...t,
+                isDrifted: true,
+                position: { lat: 51.859, lon: -3.4735 }, // shifted SW out of Sector B into steep scarp
+                telematics: {
+                  ...t.telematics!,
+                  driftDistanceM: 185,
+                  osGridRef: 'SN 9832 1985',
+                  altitudeM: 520,
+                  headingDeg: 215,
+                  headingCardinal: 'SW',
+                  breachHazard: 'Craig Cwm Llwch scarp perimeter (>34° slope)',
+                },
+              };
+            } else {
+              return {
+                ...t,
+                isDrifted: false,
+                position: { lat: 51.862, lon: -3.47 },
+                telematics: {
+                  ...t.telematics!,
+                  driftDistanceM: 0,
+                  osGridRef: 'SN 9841 2012',
+                  altitudeM: 540,
+                  headingDeg: 182,
+                  headingCardinal: 'S',
+                  breachHazard: undefined,
+                },
+              };
+            }
+          }
+          return t;
+        })
+      );
+
+      if (next) {
+        showToast('⚠️ GEOFENCE BREACH: Team Bravo drifted +185m outside Sector B boundary!');
+      } else {
+        showToast('Geofence normalized: Team Bravo returned to Sector B boundaries.');
+      }
+
+      return next;
+    });
+  };
+
+  // Re-vector drifted team via VHF radio
+  const handleRevectorTeam = (teamCallsign: string) => {
+    setIsSimulatingDrift(false);
+    setTacticalTeams((teams) =>
+      teams.map((t) => {
+        if (t.callsign === teamCallsign) {
+          return {
+            ...t,
+            isDrifted: false,
+            position: { lat: 51.862, lon: -3.47 },
+            currentTask: 'Re-vectored: Returning to designated Sector B grid line',
+            lastCheckInUtc: '12:32 UTC (Just now)',
+            telematics: {
+              ...t.telematics!,
+              driftDistanceM: 0,
+              osGridRef: 'SN 9841 2012',
+              altitudeM: 540,
+              headingDeg: 0,
+              headingCardinal: 'N',
+              breachHazard: undefined,
+            },
+          };
+        }
+        return t;
+      })
+    );
+    showToast(`Tactical Order VHF Ch 2: Team ${teamCallsign} halted. Re-vectoring back into Sector B.`);
+  };
+
+  // Authorize & expand sector boundary for team
+  const handleExpandSector = (teamCallsign: string) => {
+    setIsSimulatingDrift(false);
+    setTacticalTeams((teams) =>
+      teams.map((t) => {
+        if (t.callsign === teamCallsign) {
+          return {
+            ...t,
+            isDrifted: false,
+            sector: 'Sector B Extended (Hex 0:-1 / Hex 0:-2)',
+            assignedSectorBoundaryLabel: 'Sector B Extended',
+            currentTask: 'Authorized expansion: Surveying expanded southern perimeter',
+            telematics: {
+              ...t.telematics!,
+              driftDistanceM: 0,
+              breachHazard: undefined,
+            },
+          };
+        }
+        return t;
+      })
+    );
+    showToast(`Commander authorization logged: Sector boundary expanded for Team ${teamCallsign}. Audit trail updated.`);
+  };
+
+  // Trigger UAV FLIR detection for pitch demo
+  const handleTriggerUavDetection = () => {
+    showToast('SkyRanger UAV-01 FLIR Boson: Target flagged at 37.2°C (Candidate C-02). Transmitted to queue.');
+    onOpenEvidence();
+  };
+
+  // Trigger weather flare for pitch demo
+  const handleTriggerWeatherFlare = () => {
+    handleSelectScenario('SUMMIT_GALE');
+  };
+
+  // Export 2 CFR 200 telemetry audit log
+  const handleExportAuditLog = () => {
+    const logData = {
+      agency: rescue.agency,
+      mission_reference: rescue.mission_reference,
+      mission_name: rescue.mission_name,
+      incident_commander: rescue.commander_reference,
+      audit_standard: '2 C.F.R. § 200.334 / FEMA DRRA Compliance Log',
+      exported_at_utc: new Date().toISOString(),
+      weather_snapshot: weather,
+      teams_telematics: tacticalTeams.map((t) => ({
+        callsign: t.callsign,
+        personnel: t.personnel,
+        sector: t.sector,
+        position: t.position,
+        telematics: t.telematics,
+        equipment: t.carriedEquipment,
+        status: t.status,
+      })),
+      geofence_status: {
+        total_sectors: 18,
+        active_breaches: tacticalTeams.filter((t) => t.isDrifted).length,
+        h3_resolution: 'Res 8 (0.7 km² aperture)',
+      },
+    };
+
+    const blob = new Blob([JSON.stringify(logData, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${rescue.mission_reference}_Telematics_Audit_2CFR200.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    showToast('2 C.F.R. § 200 Telematics audit manifest downloaded.');
+  };
+
+  const driftedTeams = tacticalTeams.filter((t) => t.isDrifted);
+
   return (
     <div className="flex-1 flex flex-col bg-[#F4F6F5] overflow-y-auto">
       <StepHeader
@@ -233,6 +494,31 @@ export const ActiveOperationScreen: React.FC<ActiveOperationScreenProps> = ({
           </div>
         )}
 
+        {/* Proximity Alert Indicator (Flashes when a team drifts outside assigned hex sector) */}
+        <ProximityAlertIndicator
+          driftedTeams={driftedTeams}
+          onRevectorTeam={handleRevectorTeam}
+          onExpandSector={handleExpandSector}
+          onSimulateDriftToggle={handleSimulateDriftToggle}
+          isSimulatingDrift={isSimulatingDrift}
+        />
+
+        {/* Live Map Telematics Ribbon & MVP Pitch Demo Bar */}
+        <MapTelematicsRibbon
+          teams={tacticalTeams}
+          selectedTeamId={selectedTeamId}
+          onSelectTeam={(teamId) => {
+            setSelectedTeamId(teamId);
+            const tm = tacticalTeams.find((t) => t.id === teamId);
+            if (tm) setMapCenter(tm.position);
+          }}
+          onSimulateDriftToggle={handleSimulateDriftToggle}
+          isSimulatingDrift={isSimulatingDrift}
+          onTriggerUavDetection={handleTriggerUavDetection}
+          onTriggerWeatherFlare={handleTriggerWeatherFlare}
+          onExportAuditLog={handleExportAuditLog}
+        />
+
         {/* Quick Weather Report & Simulation Widget */}
         <QuickWeatherWidget
           weather={weather}
@@ -252,14 +538,99 @@ export const ActiveOperationScreen: React.FC<ActiveOperationScreenProps> = ({
           {/* Tactical Map (8 Cols or Full if no cell inspected) */}
           <div className={`${selectedCell && selectedReport ? 'lg:col-span-7 xl:col-span-8' : 'lg:col-span-8'} flex flex-col min-h-[460px]`}>
             <Card className="flex-1 flex flex-col p-2.5">
-              <div className="flex items-center justify-between mb-2 px-1">
-                <span className="text-xs font-bold uppercase tracking-wider text-[#1C2E2A] flex items-center gap-1.5">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2 px-1 border-b border-[#E2E8E5] pb-2">
+                <div className="flex items-center gap-2">
                   <Compass size={14} className="text-[#0B6758]" />
-                  <span>Tactical Operation Map · Real-Time Causality Grid</span>
-                </span>
-                <span className="text-[11px] font-mono text-[#5A706A]">
-                  Click any hexagon to inspect team & equipment viability
-                </span>
+                  <span className="text-xs font-bold uppercase tracking-wider text-[#1C2E2A]">
+                    Tactical Map · Real-Time Causality Grid
+                  </span>
+                  {teamStatusFilter !== 'ALL' && (
+                    <span className="text-[10px] bg-[#E1ECE8] text-[#0B6758] px-2 py-0.5 rounded font-mono font-bold">
+                      {teamStatusFilter}
+                    </span>
+                  )}
+                </div>
+
+                {/* Quick Search & Status Pills above Map */}
+                <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap">
+                  <div className="relative">
+                    <input
+                      type="text"
+                      value={teamSearchQuery}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        setTeamSearchQuery(val);
+                        const match = tacticalTeams.find(
+                          (t) =>
+                            t.callsign.toLowerCase() === val.trim().toLowerCase() ||
+                            t.name.toLowerCase() === val.trim().toLowerCase()
+                        );
+                        if (match) {
+                          setSelectedTeamId(match.id);
+                          setMapCenter(match.position);
+                        }
+                      }}
+                      placeholder="Quick find team..."
+                      className="w-36 sm:w-44 pl-6 pr-6 py-1 text-xs bg-[#F4F6F5] border border-[#CBD8D4] rounded-md focus:outline-none focus:border-[#0B6758] focus:bg-white text-[#1C2E2A]"
+                    />
+                    <Search size={12} className="absolute left-2 top-2 text-[#5A706A] pointer-events-none" />
+                    {teamSearchQuery && (
+                      <button
+                        type="button"
+                        onClick={() => setTeamSearchQuery('')}
+                        className="absolute right-2 top-1.5 text-[#5A706A] hover:text-[#1C2E2A]"
+                        title="Clear search"
+                      >
+                        <X size={12} />
+                      </button>
+                    )}
+                  </div>
+
+                  <div className="flex items-center gap-1 text-[11px]">
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setTeamStatusFilter(teamStatusFilter === 'MOVING' ? 'ALL' : 'MOVING')
+                      }
+                      className={`px-2 py-0.5 rounded font-medium transition-colors ${
+                        teamStatusFilter === 'MOVING'
+                          ? 'bg-[#0B6758] text-white font-bold'
+                          : 'bg-[#F4F6F5] text-[#5A706A] hover:bg-[#EAEFEA]'
+                      }`}
+                      title="Filter moving teams"
+                    >
+                      Moving ({tacticalTeams.filter((t) => t.speedKmh > 0 && t.status !== 'Ready').length})
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setTeamStatusFilter(teamStatusFilter === 'STATIONARY' ? 'ALL' : 'STATIONARY')
+                      }
+                      className={`px-2 py-0.5 rounded font-medium transition-colors ${
+                        teamStatusFilter === 'STATIONARY'
+                          ? 'bg-[#0B6758] text-white font-bold'
+                          : 'bg-[#F4F6F5] text-[#5A706A] hover:bg-[#EAEFEA]'
+                      }`}
+                      title="Filter stationary teams"
+                    >
+                      Stationary ({tacticalTeams.filter((t) => t.speedKmh === 0 || t.status === 'Ready' || t.status === 'Holding').length})
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setTeamStatusFilter(teamStatusFilter === 'LOW_BATTERY' ? 'ALL' : 'LOW_BATTERY')
+                      }
+                      className={`px-2 py-0.5 rounded font-medium transition-colors ${
+                        teamStatusFilter === 'LOW_BATTERY'
+                          ? 'bg-[#D97706] text-white font-bold'
+                          : 'bg-[#FEF3DD] text-[#9A690B] border border-[#F3D794] hover:bg-[#FBE9BE]'
+                      }`}
+                      title="Filter low battery teams"
+                    >
+                      Low Batt ({tacticalTeams.filter((t) => (t.batteryPct !== undefined && t.batteryPct <= 25) || t.endurancePct <= 25).length})
+                    </button>
+                  </div>
+                </div>
               </div>
 
               <div className="flex-1 min-h-[420px]">
@@ -272,6 +643,12 @@ export const ActiveOperationScreen: React.FC<ActiveOperationScreenProps> = ({
                   regions={plan?.regions}
                   dataSources={plan?.data_sources}
                   tacticalTeams={tacticalTeams}
+                  selectedTeamId={selectedTeamId}
+                  onSelectTeam={(team) => {
+                    setSelectedTeamId(team.id);
+                    setMapCenter(team.position);
+                    showToast(`Focused on Team ${team.callsign} (${team.sector})`);
+                  }}
                   candidates={rescue.evidence_candidates || []}
                   showSectors={layerToggles.sectors}
                   layerToggles={layerToggles}
@@ -375,11 +752,35 @@ export const ActiveOperationScreen: React.FC<ActiveOperationScreenProps> = ({
           </div>
         </div>
 
-        {/* Team Status Summaries Panel */}
+        {/* Team Status Summaries Panel with Integrated Search & Filter Bar */}
         <TeamStatusSummaries
           teams={tacticalTeams}
           selectedTeamId={selectedTeamId}
+          onSelectTeam={(team) => {
+            setSelectedTeamId(team.id);
+            setMapCenter(team.position);
+            showToast(`Focused on Team ${team.callsign} (${team.sector})`);
+          }}
           onLocateTeam={handleLocateTeam}
+          onToggleBatteryDrain={handleToggleSimulateBatteryDrain}
+          isSimulatingLowBattery={isSimulatingLowBattery}
+          searchQuery={teamSearchQuery}
+          onSearchChange={(q) => {
+            setTeamSearchQuery(q);
+            const match = tacticalTeams.find(
+              (t) =>
+                t.callsign.toLowerCase() === q.trim().toLowerCase() ||
+                t.name.toLowerCase() === q.trim().toLowerCase()
+            );
+            if (match) {
+              setSelectedTeamId(match.id);
+              setMapCenter(match.position);
+            }
+          }}
+          statusFilter={teamStatusFilter}
+          onStatusFilterChange={setTeamStatusFilter}
+          typeFilter={teamTypeFilter}
+          onTypeFilterChange={setTeamTypeFilter}
         />
       </div>
     </div>

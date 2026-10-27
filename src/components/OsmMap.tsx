@@ -81,6 +81,20 @@ const createTacticalTeamIcon = (team: TacticalTeam) => {
     typeCode = 'HELO';
   }
 
+  if (team.isDrifted) {
+    return L.divIcon({
+      className: 'custom-tactical-team-pin-alert',
+      html: `
+        <div style="display: flex; align-items: center; gap: 4px; background: #DC2626; color: #FFFFFF; font-size: 11px; font-weight: bold; padding: 3px 8px; border-radius: 14px; box-shadow: 0 0 0 4px rgba(220,38,38,0.4), 0 3px 10px rgba(0,0,0,0.4); border: 2px solid #FFFFFF; white-space: nowrap; transform: translate(-50%, -50%); cursor: pointer;">
+          <span style="font-size: 9px; background: rgba(0,0,0,0.3); padding: 1px 4px; border-radius: 8px;">⚠️ BREACH</span>
+          <span>${team.callsign}</span>
+        </div>
+      `,
+      iconSize: [110, 26],
+      iconAnchor: [55, 13],
+    });
+  }
+
   return L.divIcon({
     className: 'custom-tactical-team-pin',
     html: `
@@ -106,6 +120,8 @@ interface OsmMapProps {
   dataSources?: DataSourceAvailability[];
   teams?: TeamAllocation[];
   tacticalTeams?: TacticalTeam[];
+  selectedTeamId?: string | null;
+  onSelectTeam?: (team: TacticalTeam) => void;
   candidates?: EvidenceCandidate[];
   showSectors?: boolean;
   layerToggles?: MapLayerToggles;
@@ -128,6 +144,8 @@ export const OsmMap: React.FC<OsmMapProps> = ({
   dataSources = [],
   teams = [],
   tacticalTeams,
+  selectedTeamId,
+  onSelectTeam,
   candidates = [],
   showSectors = false,
   layerToggles,
@@ -455,12 +473,69 @@ export const OsmMap: React.FC<OsmMapProps> = ({
     // 7. Draw Tactical Teams GPS Markers if toggled
     if (activeToggles.teamPositions && activeTacticalTeams.length > 0) {
       activeTacticalTeams.forEach((team) => {
+        // If team is drifted, draw boundary breach halo and vector line
+        if (team.isDrifted) {
+          const alertHalo = L.circleMarker([team.position.lat, team.position.lon], {
+            radius: 20,
+            color: '#DC2626',
+            weight: 2.5,
+            fillColor: '#EF4444',
+            fillOpacity: 0.25,
+            dashArray: '4, 4',
+          });
+          layers.addLayer(alertHalo);
+
+          // Vector line to assigned boundary
+          const expectedSectorEdge: [number, number] = [51.865, -3.473];
+          const breachVector = L.polyline(
+            [expectedSectorEdge, [team.position.lat, team.position.lon]],
+            {
+              color: '#DC2626',
+              weight: 2,
+              dashArray: '3, 4',
+              opacity: 0.9,
+            }
+          );
+          breachVector.bindTooltip(
+            `<b>Sector Boundary Breach</b><br/>+${team.telematics?.driftDistanceM || 185}m outside ${team.sector}`,
+            {
+              sticky: true,
+              className: 'bg-[#DC2626] text-white text-xs px-2 py-1 rounded shadow',
+            }
+          );
+          layers.addLayer(breachVector);
+        }
+
+        // If team is currently selected, draw tactical spotlight halo
+        if (selectedTeamId === team.id) {
+          const selectedHalo = L.circleMarker([team.position.lat, team.position.lon], {
+            radius: 22,
+            color: '#0B6758',
+            weight: 3,
+            fillColor: '#10B981',
+            fillOpacity: 0.35,
+          });
+          layers.addLayer(selectedHalo);
+        }
+
         const marker = L.marker([team.position.lat, team.position.lon], {
           icon: createTacticalTeamIcon(team),
         });
 
+        if (onSelectTeam) {
+          marker.on('click', () => {
+            onSelectTeam(team);
+          });
+        }
+
         marker.bindTooltip(
-          `<b>Team ${team.callsign} (${team.personnel} pers)</b><br/>${team.sector}<br/>${team.currentTask}<br/>Radio: ${team.radioChannel}`,
+          `<b>Team ${team.callsign} (${team.personnel} pers)</b>${
+            team.isDrifted
+              ? '<br/><span style="color: #DC2626; font-weight: bold;">⚠️ DRIFTED OUTSIDE SECTOR (+' +
+                (team.telematics?.driftDistanceM || 185) +
+                'm)</span>'
+              : ''
+          }<br/>${team.sector}<br/>${team.currentTask}<br/>Radio: ${team.radioChannel}`,
           {
             sticky: true,
             className: 'bg-white text-[#1C2E2A] border border-[#E2E8E5] text-xs px-2 py-1.5 rounded shadow',

@@ -250,6 +250,19 @@ export type TerrainSlope = 'FLAT' | 'MODERATE' | 'STEEP' | 'CLIFF';
 export type TerrainSubstrate = 'MOORLAND' | 'TRACK' | 'SCREE' | 'FOREST' | 'CRAG' | 'WATER';
 export type TeamCallsign = 'Alpha' | 'Bravo' | 'UAV-01' | 'K9-Rex' | 'Tech-1' | 'Rescue-936';
 
+export interface TeamTelematics {
+  osGridRef: string;
+  altitudeM: number;
+  headingDeg: number;
+  headingCardinal: string;
+  radioRssiDb: number;
+  heartRateBpm?: number;
+  batteryVoltage?: number;
+  gpsLockSats: number;
+  driftDistanceM?: number;
+  breachHazard?: string;
+}
+
 export interface TacticalTeam {
   id: string;
   name: string;
@@ -268,6 +281,9 @@ export interface TacticalTeam {
   carriedEquipment: string[];
   currentTask: string;
   lastCheckInUtc: string;
+  isDrifted?: boolean;
+  assignedSectorBoundaryLabel?: string;
+  telematics?: TeamTelematics;
 }
 
 export interface CellTerrainInfo {

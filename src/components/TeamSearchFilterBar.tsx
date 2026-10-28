@@ -49,63 +49,73 @@ export const TeamSearchFilterBar: React.FC<TeamSearchFilterBarProps> = ({
   isSimulatingLowBattery = false,
   className = '',
 }) => {
-  // Count teams in each category
   const movingCount = teams.filter((t) => t.speedKmh > 0 && t.status !== 'Ready').length;
-  const stationaryCount = teams.filter((t) => t.speedKmh === 0 || t.status === 'Ready' || t.status === 'Holding').length;
+  const stationaryCount = teams.filter(
+    (t) => t.speedKmh === 0 || t.status === 'Ready' || t.status === 'Holding'
+  ).length;
   const lowBatteryCount = teams.filter(
-    (t) => (t.batteryPct !== undefined && t.batteryPct <= 25) || (t.endurancePct !== undefined && t.endurancePct <= 25)
+    (t) =>
+      (t.batteryPct !== undefined && t.batteryPct <= 50) ||
+      (t.endurancePct !== undefined && t.endurancePct <= 50)
+  ).length;
+  const criticalBatteryCount = teams.filter(
+    (t) => (t.batteryPct !== undefined ? t.batteryPct : t.endurancePct) < 20
   ).length;
   const breachCount = teams.filter((t) => Boolean(t.isDrifted)).length;
 
-  const isFiltered = searchQuery.trim().length > 0 || statusFilter !== 'ALL' || typeFilter !== 'ALL';
+  const isFiltered =
+    searchQuery.trim().length > 0 || statusFilter !== 'ALL' || typeFilter !== 'ALL';
 
   return (
-    <div className={`bg-white border border-[#E2E8E5] rounded-xl p-3 shadow-xs space-y-3 ${className}`}>
-      {/* Search Input Row & Filter Summary */}
-      <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-2.5">
-        {/* Search Input Field */}
+    <div
+      className={`bg-[#F6F9F7] border border-[#CBD8D4] rounded-xl p-3.5 sm:p-4 space-y-3.5 ${className}`}
+    >
+      {/* Search Input Row & Filter Summary (Apple HIG Text Fields: Height >= 44pt, font-size: 17px) */}
+      <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
         <div className="relative flex-1">
-          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-[#5A706A]">
-            <Search size={15} />
+          <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-[#1E3831]">
+            <Search size={18} />
           </div>
           <input
-            type="text"
+            type="search"
             value={searchQuery}
             onChange={(e) => onSearchChange(e.target.value)}
-            placeholder="Search team by name, callsign, sector, or gear (e.g. 'Alpha', 'Bravo', 'UAV', 'FLIR')..."
-            className="w-full pl-9 pr-9 py-2 bg-[#F4F6F5] border border-[#CBD8D4] focus:border-[#0B6758] focus:bg-white focus:outline-none rounded-lg text-xs font-medium text-[#1C2E2A] placeholder:text-[#8FA19C] transition-all"
+            placeholder="Search team by name, callsign, sector, or gear (e.g. Alpha, Bravo, UAV)..."
+            aria-label="Search tactical teams"
+            className="w-full pl-10 pr-11 py-2.5 min-h-[44px] bg-white border border-[#8BA39B] focus:border-[#0B6758] rounded-xl text-[#081820] placeholder:text-[#4A665E] transition-colors"
           />
           {searchQuery && (
             <button
               type="button"
               onClick={() => onSearchChange('')}
-              className="absolute inset-y-0 right-0 pr-3 flex items-center text-[#5A706A] hover:text-[#1C2E2A] transition-colors"
+              className="absolute inset-y-0 right-0 min-w-[44px] min-h-[44px] flex items-center justify-center text-[#1E3831] hover:text-[#081820] transition-colors cursor-pointer"
               title="Clear search query"
+              aria-label="Clear search query"
             >
-              <X size={14} />
+              <X size={18} />
             </button>
           )}
         </div>
 
-        {/* Counters & Reset Actions */}
-        <div className="flex items-center justify-between md:justify-end gap-2 shrink-0">
-          <div className="text-xs text-[#5A706A] flex items-center gap-1.5">
+        {/* Counters & Reset Actions (Targets >= 44px) */}
+        <div className="flex flex-wrap items-center justify-between md:justify-end gap-2.5 shrink-0">
+          <div className="text-sm text-[#1E3831] flex items-center gap-1.5 px-2">
             <span className="font-medium">Showing</span>
-            <span className="font-mono font-bold text-[#0B6758] bg-[#E1ECE8] px-2 py-0.5 rounded">
+            <span className="font-mono font-bold text-[#064E3B] bg-[#E1ECE8] px-2.5 py-0.5 rounded-md border border-[#A7C7BE] tabular-nums">
               {filteredCount} / {totalCount}
             </span>
-            <span className="hidden sm:inline text-[11px]">teams</span>
+            <span className="hidden sm:inline text-xs font-medium">units</span>
           </div>
 
           {isFiltered && (
             <button
               type="button"
               onClick={onResetFilters}
-              className="text-xs text-[#0B6758] font-bold hover:underline flex items-center gap-1 bg-[#F4F6F5] hover:bg-[#EAEFEA] px-2 py-1 rounded transition-colors"
+              className="min-h-[44px] px-3.5 py-2 text-xs text-[#081820] font-bold flex items-center gap-1.5 bg-white hover:bg-[#E1ECE8] border border-[#8BA39B] rounded-xl transition-colors cursor-pointer"
               title="Reset all filters"
             >
-              <RotateCcw size={12} />
-              <span>Reset</span>
+              <RotateCcw size={15} />
+              <span>Reset Filters</span>
             </button>
           )}
 
@@ -113,139 +123,143 @@ export const TeamSearchFilterBar: React.FC<TeamSearchFilterBarProps> = ({
             <button
               type="button"
               onClick={onToggleSimulateBatteryDrain}
-              className={`text-[11px] font-mono px-2 py-1 rounded border flex items-center gap-1 transition-all ${
-                isSimulatingLowBattery
-                  ? 'bg-[#FEF3DD] text-[#9A690B] border-[#F3D794] font-bold'
-                  : 'bg-[#F4F6F5] text-[#5A706A] border-[#CBD8D4] hover:bg-[#EAEFEA]'
+              className={`min-h-[44px] px-3.5 py-2 text-xs font-mono font-bold rounded-full border flex items-center gap-1.5 transition-all cursor-pointer ${
+                isSimulatingLowBattery || criticalBatteryCount > 0
+                  ? 'bg-[#DC2626] text-white border-[#991B1B] animate-pulse'
+                  : 'bg-white text-[#081820] border-[#8BA39B] hover:bg-[#FEF3DD]'
               }`}
-              title="Simulate low battery warning on ground team for testing"
+              title="Simulate <20% critical battery pulse warning on Alpha"
             >
-              <Zap size={12} className={isSimulatingLowBattery ? 'text-[#9A690B]' : 'text-[#5A706A]'} />
-              <span>{isSimulatingLowBattery ? 'Drain Active (Alpha 18%)' : 'Test Low Batt'}</span>
+              <Zap
+                size={15}
+                className={
+                  isSimulatingLowBattery || criticalBatteryCount > 0
+                    ? 'text-[#FACC15]'
+                    : 'text-[#D97706]'
+                }
+              />
+              <span>
+                {isSimulatingLowBattery
+                  ? 'Critical Batt <20% Active (Alpha 18%)'
+                  : 'Test <20% Battery Alert'}
+              </span>
             </button>
           )}
         </div>
       </div>
 
-      {/* Filter Chips Bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pt-2 border-t border-[#E2E8E5]/70 text-xs">
-        {/* Status Filter Chips */}
-        <div className="flex items-center gap-1.5 flex-wrap">
-          <span className="text-[11px] font-bold uppercase tracking-wider text-[#5A706A] mr-1 hidden sm:inline">
+      {/* Filter Selection Pills Bar (Apple HIG Selection: r >= 14pt / border-radius: 999px, min-h-[44px]) */}
+      <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-3 pt-3 border-t border-[#CBD8D4]">
+        {/* Status Filter Pills */}
+        <div className="flex items-center gap-2 flex-wrap" role="group" aria-label="Filter teams by status">
+          <span className="text-xs font-bold text-[#1E3831] mr-1">
             Status:
           </span>
 
-          {/* All Teams */}
           <button
             type="button"
             onClick={() => onStatusFilterChange('ALL')}
-            className={`px-2.5 py-1 rounded-lg font-medium transition-all flex items-center gap-1.5 ${
+            className={`min-h-[40px] px-3.5 py-1.5 rounded-full text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer border ${
               statusFilter === 'ALL'
-                ? 'bg-[#0B6758] text-white shadow-xs font-bold'
-                : 'bg-[#F4F6F5] text-[#5A706A] hover:bg-[#EAEFEA] hover:text-[#1C2E2A]'
+                ? 'bg-[#0B6758] text-white border-[#085446]'
+                : 'bg-white text-[#081820] border-[#B8C9C3] hover:bg-[#E1ECE8]'
             }`}
           >
-            <span>All</span>
+            <span>All Units</span>
             <span
-              className={`text-[10px] px-1.5 py-0.2 rounded-full font-mono ${
-                statusFilter === 'ALL' ? 'bg-white/20 text-white' : 'bg-[#E2E8E5] text-[#1C2E2A]'
+              className={`text-xs px-1.5 py-0.2 rounded-full font-mono tabular-nums ${
+                statusFilter === 'ALL' ? 'bg-white/20 text-white' : 'bg-[#EDF2EF] text-[#081820]'
               }`}
             >
               {totalCount}
             </span>
           </button>
 
-          {/* Moving */}
           <button
             type="button"
             onClick={() => onStatusFilterChange('MOVING')}
-            className={`px-2.5 py-1 rounded-lg font-medium transition-all flex items-center gap-1.5 ${
+            className={`min-h-[40px] px-3.5 py-1.5 rounded-full text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer border ${
               statusFilter === 'MOVING'
-                ? 'bg-[#0B6758] text-white shadow-xs font-bold'
-                : 'bg-[#F4F6F5] text-[#5A706A] hover:bg-[#EAEFEA] hover:text-[#1C2E2A]'
+                ? 'bg-[#0B6758] text-white border-[#085446]'
+                : 'bg-white text-[#081820] border-[#B8C9C3] hover:bg-[#E1ECE8]'
             }`}
           >
-            <span className="w-2 h-2 rounded-full bg-[#10B981] animate-pulse shrink-0" />
-            <Navigation size={13} className="shrink-0" />
+            <span className="w-2 h-2 rounded-full bg-[#16A34A] shrink-0" />
+            <Navigation size={14} className="shrink-0" />
             <span>Moving</span>
             <span
-              className={`text-[10px] px-1.5 py-0.2 rounded-full font-mono ${
-                statusFilter === 'MOVING' ? 'bg-white/20 text-white' : 'bg-[#E2E8E5] text-[#1C2E2A]'
+              className={`text-xs px-1.5 py-0.2 rounded-full font-mono tabular-nums ${
+                statusFilter === 'MOVING' ? 'bg-white/20 text-white' : 'bg-[#EDF2EF] text-[#081820]'
               }`}
             >
               {movingCount}
             </span>
           </button>
 
-          {/* Stationary */}
           <button
             type="button"
             onClick={() => onStatusFilterChange('STATIONARY')}
-            className={`px-2.5 py-1 rounded-lg font-medium transition-all flex items-center gap-1.5 ${
+            className={`min-h-[40px] px-3.5 py-1.5 rounded-full text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer border ${
               statusFilter === 'STATIONARY'
-                ? 'bg-[#0B6758] text-white shadow-xs font-bold'
-                : 'bg-[#F4F6F5] text-[#5A706A] hover:bg-[#EAEFEA] hover:text-[#1C2E2A]'
+                ? 'bg-[#0B6758] text-white border-[#085446]'
+                : 'bg-white text-[#081820] border-[#B8C9C3] hover:bg-[#E1ECE8]'
             }`}
           >
-            <PauseCircle size={13} className="shrink-0 text-slate-500" />
+            <PauseCircle size={14} className="shrink-0" />
             <span>Stationary</span>
             <span
-              className={`text-[10px] px-1.5 py-0.2 rounded-full font-mono ${
-                statusFilter === 'STATIONARY' ? 'bg-white/20 text-white' : 'bg-[#E2E8E5] text-[#1C2E2A]'
+              className={`text-xs px-1.5 py-0.2 rounded-full font-mono tabular-nums ${
+                statusFilter === 'STATIONARY' ? 'bg-white/20 text-white' : 'bg-[#EDF2EF] text-[#081820]'
               }`}
             >
               {stationaryCount}
             </span>
           </button>
 
-          {/* Low Battery */}
           <button
             type="button"
             onClick={() => onStatusFilterChange('LOW_BATTERY')}
-            className={`px-2.5 py-1 rounded-lg font-medium transition-all flex items-center gap-1.5 ${
+            className={`min-h-[40px] px-3.5 py-1.5 rounded-full text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer border ${
               statusFilter === 'LOW_BATTERY'
-                ? 'bg-[#D97706] text-white shadow-xs font-bold'
+                ? 'bg-[#DC2626] text-white border-[#991B1B]'
+                : criticalBatteryCount > 0
+                ? 'bg-[#FEE2E2] text-[#991B1B] border-[#DC2626] animate-pulse'
                 : lowBatteryCount > 0
-                ? 'bg-[#FEF3DD] text-[#9A690B] border border-[#F3D794] hover:bg-[#FBE9BE]'
-                : 'bg-[#F4F6F5] text-[#5A706A] hover:bg-[#EAEFEA]'
+                ? 'bg-[#FEF3DD] text-[#78350F] border-[#D97706] hover:bg-[#FDE68A]'
+                : 'bg-white text-[#081820] border-[#B8C9C3] hover:bg-[#EDF2EF]'
             }`}
           >
-            <BatteryWarning size={13} className="shrink-0" />
-            <span>Low Battery (&le;25%)</span>
+            <BatteryWarning size={14} className="shrink-0" />
+            <span>{criticalBatteryCount > 0 ? 'Critical Battery (<20%)' : 'Low Battery (≤50%)'}</span>
             <span
-              className={`text-[10px] px-1.5 py-0.2 rounded-full font-mono ${
+              className={`text-xs px-1.5 py-0.2 rounded-full font-mono tabular-nums ${
                 statusFilter === 'LOW_BATTERY'
                   ? 'bg-white/20 text-white'
-                  : lowBatteryCount > 0
-                  ? 'bg-[#F3D794] text-[#784F05] font-bold'
-                  : 'bg-[#E2E8E5] text-[#1C2E2A]'
+                  : criticalBatteryCount > 0
+                  ? 'bg-[#DC2626] text-white'
+                  : 'bg-white/80 text-[#081820]'
               }`}
             >
               {lowBatteryCount}
             </span>
           </button>
 
-          {/* Boundary Breach (if any or selectable) */}
           <button
             type="button"
             onClick={() => onStatusFilterChange('BREACH')}
-            className={`px-2.5 py-1 rounded-lg font-medium transition-all flex items-center gap-1.5 ${
+            className={`min-h-[40px] px-3.5 py-1.5 rounded-full text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer border ${
               statusFilter === 'BREACH'
-                ? 'bg-[#DC2626] text-white shadow-xs font-bold'
+                ? 'bg-[#DC2626] text-white border-[#991B1B]'
                 : breachCount > 0
-                ? 'bg-red-50 text-red-700 border border-red-200 animate-pulse hover:bg-red-100'
-                : 'bg-[#F4F6F5] text-[#5A706A] hover:bg-[#EAEFEA]'
+                ? 'bg-[#FEE2E2] text-[#991B1B] border-[#DC2626] animate-pulse'
+                : 'bg-white text-[#081820] border-[#B8C9C3] hover:bg-[#EDF2EF]'
             }`}
           >
-            <ShieldAlert size={13} className="shrink-0" />
-            <span>Breach</span>
+            <ShieldAlert size={14} className="shrink-0" />
+            <span>Sector Breach</span>
             <span
-              className={`text-[10px] px-1.5 py-0.2 rounded-full font-mono ${
-                statusFilter === 'BREACH'
-                  ? 'bg-white/20 text-white'
-                  : breachCount > 0
-                  ? 'bg-red-200 text-red-900 font-bold'
-                  : 'bg-[#E2E8E5] text-[#1C2E2A]'
+              className={`text-xs px-1.5 py-0.2 rounded-full font-mono tabular-nums ${
+                statusFilter === 'BREACH' ? 'bg-white/20 text-white' : 'bg-[#EDF2EF] text-[#081820]'
               }`}
             >
               {breachCount}
@@ -253,70 +267,34 @@ export const TeamSearchFilterBar: React.FC<TeamSearchFilterBarProps> = ({
           </button>
         </div>
 
-        {/* Asset Classification Sub-Filter */}
-        <div className="flex items-center gap-1 overflow-x-auto pb-1 sm:pb-0">
-          <span className="text-[10px] uppercase font-bold text-[#5A706A] mr-1 hidden sm:inline">
-            Unit:
+        {/* Asset Type Filter Pills */}
+        <div className="flex items-center gap-1.5 flex-wrap" role="group" aria-label="Filter teams by asset type">
+          <span className="text-xs font-bold text-[#1E3831] mr-1">
+            Type:
           </span>
-          <button
-            type="button"
-            onClick={() => onTypeFilterChange('ALL')}
-            className={`px-2 py-0.5 rounded text-[11px] font-medium transition-colors ${
-              typeFilter === 'ALL'
-                ? 'bg-[#1C2E2A] text-white font-bold'
-                : 'bg-[#F4F6F5] text-[#5A706A] hover:bg-[#EAEFEA]'
-            }`}
-          >
-            All
-          </button>
-          <button
-            type="button"
-            onClick={() => onTypeFilterChange('GROUND')}
-            className={`px-2 py-0.5 rounded text-[11px] font-medium flex items-center gap-1 transition-colors ${
-              typeFilter === 'GROUND'
-                ? 'bg-[#1C2E2A] text-white font-bold'
-                : 'bg-[#F4F6F5] text-[#5A706A] hover:bg-[#EAEFEA]'
-            }`}
-          >
-            <Users size={11} />
-            <span>Ground</span>
-          </button>
-          <button
-            type="button"
-            onClick={() => onTypeFilterChange('AIR')}
-            className={`px-2 py-0.5 rounded text-[11px] font-medium flex items-center gap-1 transition-colors ${
-              typeFilter === 'AIR'
-                ? 'bg-[#1C2E2A] text-white font-bold'
-                : 'bg-[#F4F6F5] text-[#5A706A] hover:bg-[#EAEFEA]'
-            }`}
-          >
-            <Plane size={11} />
-            <span>Air</span>
-          </button>
-          <button
-            type="button"
-            onClick={() => onTypeFilterChange('K9')}
-            className={`px-2 py-0.5 rounded text-[11px] font-medium flex items-center gap-1 transition-colors ${
-              typeFilter === 'K9'
-                ? 'bg-[#1C2E2A] text-white font-bold'
-                : 'bg-[#F4F6F5] text-[#5A706A] hover:bg-[#EAEFEA]'
-            }`}
-          >
-            <Dog size={11} />
-            <span>K9</span>
-          </button>
-          <button
-            type="button"
-            onClick={() => onTypeFilterChange('TECH')}
-            className={`px-2 py-0.5 rounded text-[11px] font-medium flex items-center gap-1 transition-colors ${
-              typeFilter === 'TECH'
-                ? 'bg-[#1C2E2A] text-white font-bold'
-                : 'bg-[#F4F6F5] text-[#5A706A] hover:bg-[#EAEFEA]'
-            }`}
-          >
-            <Anchor size={11} />
-            <span>Tech</span>
-          </button>
+          {(
+            [
+              { id: 'ALL', label: 'All', icon: null },
+              { id: 'GROUND', label: 'Ground', icon: <Users size={13} /> },
+              { id: 'AIR', label: 'Air / UAV', icon: <Plane size={13} /> },
+              { id: 'K9', label: 'K9', icon: <Dog size={13} /> },
+              { id: 'TECH', label: 'Rope Tech', icon: <Anchor size={13} /> },
+            ] as const
+          ).map((u) => (
+            <button
+              key={u.id}
+              type="button"
+              onClick={() => onTypeFilterChange(u.id)}
+              className={`min-h-[38px] px-3 py-1.5 rounded-full text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer border ${
+                typeFilter === u.id
+                  ? 'bg-[#081820] text-white border-[#081820]'
+                  : 'bg-white text-[#081820] border-[#B8C9C3] hover:bg-[#E1ECE8]'
+              }`}
+            >
+              {u.icon}
+              <span>{u.label}</span>
+            </button>
+          ))}
         </div>
       </div>
     </div>

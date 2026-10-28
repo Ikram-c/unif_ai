@@ -97,6 +97,25 @@ export const WEATHER_PRESETS: Record<WeatherScenarioKey, DetailedWeatherReport> 
 };
 
 /**
+ * Convert WGS84 Lat/Lon near Bannau Brycheiniog (Pen y Fan / Storey Arms) to OS National Grid SN ref
+ */
+export function formatOsGridRef(lat: number, lon: number): string {
+  const baseLat = 51.8685;
+  const baseLon = -3.48;
+  const eastingM = Math.round(9825 + ((lon - baseLon) * 68500) / 10);
+  const northingM = Math.round(2045 + ((lat - baseLat) * 111200) / 10);
+  const eStr = String(Math.max(1000, Math.min(9999, eastingM))).padStart(4, '0');
+  const nStr = String(Math.max(1000, Math.min(9999, northingM))).padStart(4, '0');
+  return `SN ${eStr} ${nStr}`;
+}
+
+export function bearingToCardinal(deg: number): string {
+  const dirs = ['N', 'NNE', 'NE', 'ENE', 'E', 'ESE', 'SE', 'SSE', 'S', 'SSW', 'SW', 'WSW', 'W', 'WNW', 'NW', 'NNW'];
+  const normalized = ((deg % 360) + 360) % 360;
+  return dirs[Math.round(normalized / 22.5) % 16];
+}
+
+/**
  * Standard tactical teams deployed or on standby
  */
 export const DEFAULT_TACTICAL_TEAMS: TacticalTeam[] = [
@@ -112,25 +131,30 @@ export const DEFAULT_TACTICAL_TEAMS: TacticalTeam[] = [
     status: 'In progress',
     radioChannel: 'VHF Ch 1 (156.800 MHz)',
     endurancePct: 92,
-    speedKmh: 1.4,
+    speedKmh: 2.4,
     position: { lat: 51.8745, lon: -3.468 },
+    targetWaypoint: { lat: 51.8832, lon: -3.4435 }, // Corn Du / Pen y Fan saddle
     breadcrumbs: [
       { lat: 51.8685, lon: -3.48 },
       { lat: 51.871, lon: -3.475 },
+      { lat: 51.8728, lon: -3.4715 },
       { lat: 51.8745, lon: -3.468 },
     ],
     carriedEquipment: ['GPS Trackers', 'Trauma Kit', 'VHF Handhelds', 'Thermal Monocular'],
     currentTask: 'Hasty path sweep towards Corn Du saddle',
-    lastCheckInUtc: '12:24 UTC (6m ago)',
+    lastCheckInUtc: '12:24 UTC (Live)',
     isDrifted: false,
     telematics: {
-      osGridRef: 'SN 9864 2138',
+      osGridRef: 'SN 9907 2112',
       altitudeM: 685,
-      headingDeg: 38,
-      headingCardinal: 'NE',
+      headingDeg: 58,
+      headingCardinal: 'ENE',
       radioRssiDb: -74,
-      heartRateBpm: 114,
+      heartRateBpm: 118,
       gpsLockSats: 16,
+      cepRadiusM: 1.4,
+      distanceTraveledKm: 1.38,
+      etaMinutes: 28,
     },
   },
   {
@@ -145,25 +169,30 @@ export const DEFAULT_TACTICAL_TEAMS: TacticalTeam[] = [
     status: 'In progress',
     radioChannel: 'VHF Ch 2 (156.850 MHz)',
     endurancePct: 86,
-    speedKmh: 0.9,
+    speedKmh: 1.6,
     position: { lat: 51.862, lon: -3.47 },
+    targetWaypoint: { lat: 51.8565, lon: -3.461 },
     breadcrumbs: [
       { lat: 51.8685, lon: -3.48 },
       { lat: 51.865, lon: -3.476 },
+      { lat: 51.8635, lon: -3.473 },
       { lat: 51.862, lon: -3.47 },
     ],
     carriedEquipment: ['Collapsible Titanium Stretcher', 'Fleece Warmth Wrap', 'VHF Repeater Unit'],
     currentTask: 'Drainage contour grid line search',
-    lastCheckInUtc: '12:24 UTC (6m ago)',
+    lastCheckInUtc: '12:24 UTC (Live)',
     isDrifted: false,
     telematics: {
-      osGridRef: 'SN 9841 2012',
+      osGridRef: 'SN 9894 1973',
       altitudeM: 540,
-      headingDeg: 182,
-      headingCardinal: 'S',
-      radioRssiDb: -88,
-      heartRateBpm: 128,
+      headingDeg: 135,
+      headingCardinal: 'SE',
+      radioRssiDb: -84,
+      heartRateBpm: 126,
       gpsLockSats: 14,
+      cepRadiusM: 2.1,
+      distanceTraveledKm: 1.12,
+      etaMinutes: 34,
     },
   },
   {
@@ -179,25 +208,30 @@ export const DEFAULT_TACTICAL_TEAMS: TacticalTeam[] = [
     radioChannel: 'Data Link 2.4/5.8 GHz (AES-256)',
     endurancePct: 22,
     batteryPct: 22,
-    speedKmh: 35.0,
+    speedKmh: 36.0,
     position: { lat: 51.878, lon: -3.455 },
+    targetWaypoint: { lat: 51.884, lon: -3.438 },
     breadcrumbs: [
       { lat: 51.8685, lon: -3.48 },
       { lat: 51.872, lon: -3.465 },
+      { lat: 51.8755, lon: -3.459 },
       { lat: 51.878, lon: -3.455 },
     ],
     carriedEquipment: ['FLIR Boson 640 Thermal Sensor', '4K 30x Optical Zoom Gimbal', 'ADS-B Out'],
-    currentTask: 'Thermal corridor sweep · ⚠️ Low battery (22%) RTL advisory',
-    lastCheckInUtc: '12:29 UTC (1m ago)',
+    currentTask: 'Thermal corridor sweep · Low battery (22%) RTL advisory',
+    lastCheckInUtc: '12:29 UTC (Live)',
     isDrifted: false,
     telematics: {
-      osGridRef: 'SN 9912 2175',
+      osGridRef: 'SN 9996 2151',
       altitudeM: 820,
-      headingDeg: 270,
-      headingCardinal: 'W',
+      headingDeg: 62,
+      headingCardinal: 'ENE',
       radioRssiDb: -62,
       batteryVoltage: 20.8,
       gpsLockSats: 22,
+      cepRadiusM: 0.8,
+      distanceTraveledKm: 4.65,
+      etaMinutes: 4,
     },
   },
   {
@@ -212,24 +246,29 @@ export const DEFAULT_TACTICAL_TEAMS: TacticalTeam[] = [
     status: 'In progress',
     radioChannel: 'VHF Ch 3 (156.900 MHz)',
     endurancePct: 82,
-    speedKmh: 2.1,
+    speedKmh: 3.1,
     position: { lat: 51.871, lon: -3.478 },
+    targetWaypoint: { lat: 51.8795, lon: -3.466 },
     breadcrumbs: [
       { lat: 51.8685, lon: -3.48 },
+      { lat: 51.8698, lon: -3.479 },
       { lat: 51.871, lon: -3.478 },
     ],
     carriedEquipment: ['Trailing Scent Harness', 'GPS K9 Collar', 'Booties', 'K9 First Aid'],
     currentTask: 'Air-scent sampling along downwind gully',
-    lastCheckInUtc: '12:20 UTC (10m ago)',
+    lastCheckInUtc: '12:20 UTC (Live)',
     isDrifted: false,
     telematics: {
-      osGridRef: 'SN 9815 2120',
+      osGridRef: 'SN 9839 2073',
       altitudeM: 620,
-      headingDeg: 25,
-      headingCardinal: 'NNE',
+      headingDeg: 41,
+      headingCardinal: 'NE',
       radioRssiDb: -79,
       heartRateBpm: 108,
       gpsLockSats: 15,
+      cepRadiusM: 1.8,
+      distanceTraveledKm: 0.94,
+      etaMinutes: 19,
     },
   },
   {
@@ -246,10 +285,11 @@ export const DEFAULT_TACTICAL_TEAMS: TacticalTeam[] = [
     endurancePct: 100,
     speedKmh: 0.0,
     position: { lat: 51.8685, lon: -3.48 },
+    targetWaypoint: { lat: 51.8825, lon: -3.441 },
     breadcrumbs: [{ lat: 51.8685, lon: -3.48 }],
     carriedEquipment: ['200m Static Ropes', 'Rigging Plates & Winch', 'High-Angle Litter', 'Climbing Hardware'],
     currentTask: 'Stationary standby at Storey Arms rendezvous for crag callout',
-    lastCheckInUtc: '12:28 UTC (2m ago)',
+    lastCheckInUtc: '12:28 UTC (Live)',
     isDrifted: false,
     telematics: {
       osGridRef: 'SN 9825 2045',
@@ -259,6 +299,9 @@ export const DEFAULT_TACTICAL_TEAMS: TacticalTeam[] = [
       radioRssiDb: -58,
       heartRateBpm: 76,
       gpsLockSats: 18,
+      cepRadiusM: 1.1,
+      distanceTraveledKm: 0.0,
+      etaMinutes: 0,
     },
   },
   {
@@ -274,22 +317,140 @@ export const DEFAULT_TACTICAL_TEAMS: TacticalTeam[] = [
     radioChannel: 'Air VHF 123.100 MHz',
     endurancePct: 100,
     speedKmh: 0.0,
-    position: { lat: 51.85, lon: -3.49 },
-    breadcrumbs: [],
+    position: { lat: 51.855, lon: -3.488 },
+    targetWaypoint: { lat: 51.878, lon: -3.452 },
+    breadcrumbs: [{ lat: 51.855, lon: -3.488 }],
     carriedEquipment: ['Star SAFIRE 380-HD FLIR', 'Dual Rescue Winch', 'Paramedic Suite', 'Searchlight'],
     currentTask: 'Stationary helipad standby: Weather flight ceiling monitoring',
-    lastCheckInUtc: '12:15 UTC (15m ago)',
+    lastCheckInUtc: '12:15 UTC (Live)',
     isDrifted: false,
     telematics: {
-      osGridRef: 'SS 9974 6825',
+      osGridRef: 'SN 9770 1895',
       altitudeM: 1200,
       headingDeg: 340,
       headingCardinal: 'NNW',
       radioRssiDb: -52,
       gpsLockSats: 24,
+      cepRadiusM: 0.6,
+      distanceTraveledKm: 0.0,
+      etaMinutes: 0,
     },
   },
 ];
+
+/**
+ * Advances active teams along their kinematic vector or toward their target waypoint
+ * for real-time position tracking.
+ */
+export function stepLiveTeamPositions(
+  teams: TacticalTeam[],
+  speedMultiplier: number = 1,
+  nowStr: string = '12:30 UTC'
+): TacticalTeam[] {
+  return teams.map((team) => {
+    // Only move teams whose status is 'In progress' or 'Returning'
+    const isMovingStatus = team.status === 'In progress' || team.status === 'Returning';
+    if (!isMovingStatus) {
+      return {
+        ...team,
+        speedKmh: 0,
+      };
+    }
+
+    // Default nominal speed by asset type if currently 0
+    let nominalSpeed = team.speedKmh;
+    if (nominalSpeed <= 0) {
+      if (team.type === 'AIR_UAV') nominalSpeed = 34.0;
+      else if (team.type === 'HELO') nominalSpeed = 145.0;
+      else if (team.type === 'K9_UNIT') nominalSpeed = 3.0;
+      else if (team.type === 'TECH_ROPE') nominalSpeed = 1.4;
+      else nominalSpeed = 2.2;
+    }
+
+    const destination =
+      team.status === 'Returning'
+        ? { lat: 51.8685, lon: -3.48 } // Storey Arms Base
+        : team.targetWaypoint || { lat: 51.881, lon: -3.448 };
+
+    const dLat = destination.lat - team.position.lat;
+    const dLon = destination.lon - team.position.lon;
+    const distDeg = Math.sqrt(dLat * dLat + dLon * dLon);
+
+    // If very close to destination, pick a patrol loop target
+    let nextTarget = destination;
+    if (distDeg < 0.0006) {
+      nextTarget = {
+        lat: 51.8685 + (Math.sin(Date.now() / 10000 + team.personnel) * 0.014),
+        lon: -3.48 + (Math.cos(Date.now() / 10000 + team.personnel) * 0.022),
+      };
+    }
+
+    const vecLat = nextTarget.lat - team.position.lat;
+    const vecLon = nextTarget.lon - team.position.lon;
+    const vecLen = Math.max(0.00001, Math.sqrt(vecLat * vecLat + vecLon * vecLon));
+
+    // Step size proportional to speedKmh and speedMultiplier
+    const stepDeg = (nominalSpeed / 111000) * 1.8 * speedMultiplier;
+    const newLat = team.position.lat + (vecLat / vecLen) * Math.min(stepDeg, vecLen);
+    const newLon = team.position.lon + (vecLon / vecLen) * Math.min(stepDeg, vecLen);
+
+    // Bearing in degrees (0 = North, 90 = East)
+    const latRad = (vecLat * 111000);
+    const lonRad = (vecLon * 68500);
+    const angleRad = Math.atan2(lonRad, latRad);
+    const headingDeg = Math.round(((angleRad * 180) / Math.PI + 360) % 360);
+    const headingCardinal = bearingToCardinal(headingDeg);
+
+    // Elevation profile estimation
+    const baseElev =
+      team.type === 'AIR_UAV'
+        ? 815
+        : team.type === 'HELO'
+        ? 1180
+        : Math.round(440 + Math.max(0, (newLat - 51.865) * 16500));
+
+    // Distance increment in km
+    const stepKm = (Math.min(stepDeg, vecLen) * 95);
+    const prevDist = team.telematics?.distanceTraveledKm || 0;
+    const remainingKm = vecLen * 95;
+    const etaMinutes = Math.max(1, Math.round((remainingKm / Math.max(0.5, nominalSpeed)) * 60));
+
+    // Append to breadcrumbs (keep last 24 points)
+    const lastCrumb = team.breadcrumbs[team.breadcrumbs.length - 1];
+    const crumbDist = lastCrumb
+      ? Math.hypot(newLat - lastCrumb.lat, newLon - lastCrumb.lon)
+      : 1;
+    const updatedBreadcrumbs =
+      crumbDist > 0.00035
+        ? [...team.breadcrumbs.slice(-23), { lat: newLat, lon: newLon }]
+        : team.breadcrumbs;
+
+    return {
+      ...team,
+      speedKmh: Math.round(nominalSpeed * 10) / 10,
+      position: { lat: newLat, lon: newLon },
+      targetWaypoint: nextTarget,
+      breadcrumbs: updatedBreadcrumbs,
+      lastCheckInUtc: `${nowStr} (Live)`,
+      telematics: {
+        ...(team.telematics || {
+          osGridRef: formatOsGridRef(newLat, newLon),
+          altitudeM: baseElev,
+          headingDeg,
+          headingCardinal,
+          radioRssiDb: -72,
+          gpsLockSats: 16,
+        }),
+        osGridRef: formatOsGridRef(newLat, newLon),
+        altitudeM: baseElev,
+        headingDeg,
+        headingCardinal,
+        distanceTraveledKm: Math.round((prevDist + stepKm) * 100) / 100,
+        etaMinutes,
+      },
+    };
+  });
+}
 
 /**
  * Deterministic terrain extraction based on coordinates & grid offset

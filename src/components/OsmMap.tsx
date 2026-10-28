@@ -63,8 +63,8 @@ const createEvidenceIcon = (label: string) => {
   });
 };
 
-// Tactical Team Marker Icon
-const createTacticalTeamIcon = (team: TacticalTeam) => {
+// Tactical Team Marker Icon with Live Heading Vector & Status State
+const createTacticalTeamIcon = (team: TacticalTeam, isSelected?: boolean) => {
   let bgColor = '#0B6758';
   let typeCode = 'FT';
   if (team.type === 'AIR_UAV') {
@@ -81,12 +81,15 @@ const createTacticalTeamIcon = (team: TacticalTeam) => {
     typeCode = 'HELO';
   }
 
-  if (team.isDrifted) {
+  const heading = team.telematics?.headingDeg || 0;
+  const isMoving = team.speedKmh > 0 && (team.status === 'In progress' || team.status === 'Returning');
+
+  if (team.status === 'SOS / Assist') {
     return L.divIcon({
-      className: 'custom-tactical-team-pin-alert',
+      className: 'custom-tactical-team-pin-sos',
       html: `
-        <div style="display: flex; align-items: center; gap: 4px; background: #DC2626; color: #FFFFFF; font-size: 11px; font-weight: bold; padding: 3px 8px; border-radius: 14px; box-shadow: 0 0 0 4px rgba(220,38,38,0.4), 0 3px 10px rgba(0,0,0,0.4); border: 2px solid #FFFFFF; white-space: nowrap; transform: translate(-50%, -50%); cursor: pointer;">
-          <span style="font-size: 9px; background: rgba(0,0,0,0.3); padding: 1px 4px; border-radius: 8px;">⚠️ BREACH</span>
+        <div style="display: flex; align-items: center; gap: 4px; background: #DC2626; color: #FFFFFF; font-size: 11px; font-weight: 800; padding: 3px 9px; border-radius: 4px; box-shadow: 0 0 0 5px rgba(220,38,38,0.45), 2px 2px 0px #081820; border: 2px solid #FACC15; white-space: nowrap; transform: translate(-50%, -50%); cursor: pointer; font-family: 'JetBrains Mono', monospace;">
+          <span style="font-size: 9px; background: #FACC15; color: #081820; padding: 1px 4px; border-radius: 2px; font-weight: 900;">SOS</span>
           <span>${team.callsign}</span>
         </div>
       `,
@@ -95,16 +98,40 @@ const createTacticalTeamIcon = (team: TacticalTeam) => {
     });
   }
 
+  if (team.isDrifted) {
+    return L.divIcon({
+      className: 'custom-tactical-team-pin-alert',
+      html: `
+        <div style="display: flex; align-items: center; gap: 4px; background: #DC2626; color: #FFFFFF; font-size: 11px; font-weight: bold; padding: 3px 8px; border-radius: 4px; box-shadow: 0 0 0 4px rgba(220,38,38,0.4), 2px 2px 0px #081820; border: 1.5px solid #FFFFFF; white-space: nowrap; transform: translate(-50%, -50%); cursor: pointer; font-family: 'JetBrains Mono', monospace;">
+          <span style="font-size: 9px; background: rgba(0,0,0,0.35); padding: 1px 4px; border-radius: 2px;">BREACH</span>
+          <span>${team.callsign}</span>
+        </div>
+      `,
+      iconSize: [110, 26],
+      iconAnchor: [55, 13],
+    });
+  }
+
+  const borderStyle = isSelected ? '2px solid #FACC15' : '1.5px solid #081820';
+  const shadowStyle = isSelected
+    ? '0 0 0 3px rgba(250,204,21,0.55), 3px 3px 0px #081820'
+    : '2px 2px 0px #081820';
+
   return L.divIcon({
     className: 'custom-tactical-team-pin',
     html: `
-      <div style="display: flex; align-items: center; gap: 4px; background: ${bgColor}; color: #FFFFFF; font-size: 11px; font-weight: bold; padding: 2px 8px; border-radius: 14px; box-shadow: 0 2px 8px rgba(0,0,0,0.35); border: 2px solid #FFFFFF; white-space: nowrap; transform: translate(-50%, -50%); cursor: pointer;">
-        <span style="font-size: 9px; opacity: 0.85; background: rgba(255,255,255,0.25); padding: 1px 4px; border-radius: 8px;">${typeCode}</span>
+      <div style="display: flex; align-items: center; gap: 4px; background: ${bgColor}; color: #FFFFFF; font-size: 11px; font-weight: 700; padding: 2px 7px; border-radius: 4px; box-shadow: ${shadowStyle}; border: ${borderStyle}; white-space: nowrap; transform: translate(-50%, -50%); cursor: pointer; font-family: 'JetBrains Mono', monospace;">
+        <span style="font-size: 9px; background: #081820; color: #88C070; padding: 1px 4px; border-radius: 2px; font-weight: 800;">${typeCode}</span>
         <span>${team.callsign}</span>
+        ${
+          isMoving
+            ? `<span style="display: inline-block; transform: rotate(${heading}deg); font-size: 10px; color: #FACC15; line-height: 1;" title="Heading ${heading}°">▲</span>`
+            : `<span style="display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: #E0F8D0;" title="${team.status}"></span>`
+        }
       </div>
     `,
-    iconSize: [90, 24],
-    iconAnchor: [45, 12],
+    iconSize: [104, 24],
+    iconAnchor: [52, 12],
   });
 };
 
@@ -122,6 +149,8 @@ interface OsmMapProps {
   tacticalTeams?: TacticalTeam[];
   selectedTeamId?: string | null;
   onSelectTeam?: (team: TacticalTeam) => void;
+  isDispatchingWaypoint?: boolean;
+  onDispatchWaypoint?: (pos: GeoPosition) => void;
   candidates?: EvidenceCandidate[];
   showSectors?: boolean;
   layerToggles?: MapLayerToggles;
@@ -146,6 +175,8 @@ export const OsmMap: React.FC<OsmMapProps> = ({
   tacticalTeams,
   selectedTeamId,
   onSelectTeam,
+  isDispatchingWaypoint = false,
+  onDispatchWaypoint,
   candidates = [],
   showSectors = false,
   layerToggles,
@@ -158,6 +189,7 @@ export const OsmMap: React.FC<OsmMapProps> = ({
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<L.Map | null>(null);
   const layerGroupRef = useRef<L.LayerGroup | null>(null);
+  const hasFitInitialBoundsRef = useRef<boolean>(false);
 
   // Active weather and tactical teams fallback
   const activeWeather = weather || WEATHER_PRESETS.BASELINE;
@@ -212,13 +244,30 @@ export const OsmMap: React.FC<OsmMapProps> = ({
     };
   }, []);
 
-  // Update center if center changed significantly
+  // Bind waypoint dispatch click handler when active
+  useEffect(() => {
+    const map = mapInstanceRef.current;
+    if (!map || !onDispatchWaypoint) return;
+
+    const handleMapClick = (e: L.LeafletMouseEvent) => {
+      if (isDispatchingWaypoint) {
+        onDispatchWaypoint({ lat: e.latlng.lat, lon: e.latlng.lng });
+      }
+    };
+
+    map.on('click', handleMapClick);
+    return () => {
+      map.off('click', handleMapClick);
+    };
+  }, [isDispatchingWaypoint, onDispatchWaypoint]);
+
+  // Update center if center changed explicitly
   useEffect(() => {
     if (mapInstanceRef.current && center) {
       const current = mapInstanceRef.current.getCenter();
       const dist = Math.abs(current.lat - center.lat) + Math.abs(current.lng - center.lon);
-      if (dist > 0.04) {
-        mapInstanceRef.current.setView([center.lat, center.lon], zoom);
+      if (dist > 0.002) {
+        mapInstanceRef.current.panTo([center.lat, center.lon], { animate: true });
       }
     }
   }, [center.lat, center.lon]);
@@ -345,7 +394,7 @@ export const OsmMap: React.FC<OsmMapProps> = ({
         }
 
         if (isSelected) {
-          strokeColor = '#FFFFFF';
+          strokeColor = '#FACC15';
           fillColor = '#0B6758';
           fillOpacity = 0.6;
         }
@@ -360,7 +409,7 @@ export const OsmMap: React.FC<OsmMapProps> = ({
 
         // Hover Tooltip with Causality Breakdown
         const tooltipContent = `
-          <div style="font-family: sans-serif; min-width: 170px;">
+          <div style="font-family: 'Plus Jakarta Sans', sans-serif; min-width: 170px;">
             <div style="font-weight: bold; font-size: 11px; color: #1C2E2A; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #E2E8E5; padding-bottom: 3px; margin-bottom: 4px;">
               <span>Hex ${region.cell.cell_id}</span>
               <span style="font-size: 10px; padding: 1px 5px; border-radius: 4px; font-weight: bold; background: ${
@@ -400,8 +449,8 @@ export const OsmMap: React.FC<OsmMapProps> = ({
         if (isSelected) {
           const centerMarker = L.circleMarker([region.cell.centre.lat, region.cell.centre.lon], {
             radius: 6,
-            color: '#FFFFFF',
-            fillColor: '#0B6758',
+            color: '#FACC15',
+            fillColor: '#081820',
             fillOpacity: 1,
             weight: 2,
           });
@@ -410,7 +459,7 @@ export const OsmMap: React.FC<OsmMapProps> = ({
       });
     }
 
-    // 4. Draw Breadcrumb Search Tracks if toggled
+    // 4. Draw Breadcrumb Search Tracks & Target Waypoint Vectors if toggled
     if (activeToggles.teamTracks && activeTacticalTeams.length > 0) {
       activeTacticalTeams.forEach((t) => {
         if (t.breadcrumbs && t.breadcrumbs.length > 1) {
@@ -418,14 +467,46 @@ export const OsmMap: React.FC<OsmMapProps> = ({
           const trackLine = L.polyline(points, {
             color: t.type === 'AIR_UAV' ? '#16A34A' : t.type === 'K9_UNIT' ? '#9A690B' : '#0B6758',
             weight: 2.5,
-            dashArray: '4, 6',
-            opacity: 0.8,
+            dashArray: '4, 5',
+            opacity: 0.85,
           });
-          trackLine.bindTooltip(`Track: Team ${t.callsign} (${t.breadcrumbs.length} check-ins)`, {
+          trackLine.bindTooltip(`Breadcrumb Trail: Team ${t.callsign} (${t.breadcrumbs.length} GPS fixes)`, {
             sticky: true,
-            className: 'bg-[#1C2E2A] text-white text-[10px] px-2 py-0.5 rounded',
+            className: 'bg-[#081820] text-[#E0F8D0] text-[10px] px-2 py-0.5 rounded font-mono',
           });
           layers.addLayer(trackLine);
+        }
+
+        // Draw target waypoint vector if moving or selected
+        const isSelected = selectedTeamId === t.id;
+        if (t.targetWaypoint && (isSelected || t.status === 'In progress' || t.status === 'Returning')) {
+          const targetPos: [number, number] =
+            t.status === 'Returning'
+              ? [51.8685, -3.48]
+              : [t.targetWaypoint.lat, t.targetWaypoint.lon];
+
+          const vectorLine = L.polyline([[t.position.lat, t.position.lon], targetPos], {
+            color: isSelected ? '#FACC15' : '#081820',
+            weight: isSelected ? 2 : 1.5,
+            dashArray: '2, 5',
+            opacity: isSelected ? 0.95 : 0.45,
+          });
+          layers.addLayer(vectorLine);
+
+          if (isSelected) {
+            const wpMarker = L.circleMarker(targetPos, {
+              radius: 5,
+              color: '#081820',
+              weight: 2,
+              fillColor: '#FACC15',
+              fillOpacity: 1,
+            });
+            wpMarker.bindTooltip(`Target Waypoint · Team ${t.callsign} (ETA ${t.telematics?.etaMinutes || 12}m)`, {
+              sticky: true,
+              className: 'bg-[#081820] text-[#FACC15] text-[10px] px-2 py-0.5 rounded font-mono font-bold',
+            });
+            layers.addLayer(wpMarker);
+          }
         }
       });
     }
@@ -473,6 +554,19 @@ export const OsmMap: React.FC<OsmMapProps> = ({
     // 7. Draw Tactical Teams GPS Markers if toggled
     if (activeToggles.teamPositions && activeTacticalTeams.length > 0) {
       activeTacticalTeams.forEach((team) => {
+        const isSelected = selectedTeamId === team.id;
+
+        // Draw GNSS Accuracy / Telemetry Ring around team
+        const cepRadiusVisual = (team.telematics?.cepRadiusM || 1.5) * 45;
+        const cepCircle = L.circle([team.position.lat, team.position.lon], {
+          radius: cepRadiusVisual,
+          color: team.status === 'SOS / Assist' ? '#DC2626' : isSelected ? '#FACC15' : '#0B6758',
+          weight: isSelected ? 1.5 : 1,
+          fillColor: team.status === 'SOS / Assist' ? '#EF4444' : isSelected ? '#FACC15' : '#88C070',
+          fillOpacity: isSelected ? 0.2 : 0.08,
+        });
+        layers.addLayer(cepCircle);
+
         // If team is drifted, draw boundary breach halo and vector line
         if (team.isDrifted) {
           const alertHalo = L.circleMarker([team.position.lat, team.position.lon], {
@@ -507,19 +601,19 @@ export const OsmMap: React.FC<OsmMapProps> = ({
         }
 
         // If team is currently selected, draw tactical spotlight halo
-        if (selectedTeamId === team.id) {
+        if (isSelected) {
           const selectedHalo = L.circleMarker([team.position.lat, team.position.lon], {
             radius: 22,
-            color: '#0B6758',
-            weight: 3,
-            fillColor: '#10B981',
-            fillOpacity: 0.35,
+            color: '#081820',
+            weight: 2.5,
+            fillColor: '#FACC15',
+            fillOpacity: 0.28,
           });
           layers.addLayer(selectedHalo);
         }
 
         const marker = L.marker([team.position.lat, team.position.lon], {
-          icon: createTacticalTeamIcon(team),
+          icon: createTacticalTeamIcon(team, isSelected),
         });
 
         if (onSelectTeam) {
@@ -529,16 +623,22 @@ export const OsmMap: React.FC<OsmMapProps> = ({
         }
 
         marker.bindTooltip(
-          `<b>Team ${team.callsign} (${team.personnel} pers)</b>${
-            team.isDrifted
-              ? '<br/><span style="color: #DC2626; font-weight: bold;">⚠️ DRIFTED OUTSIDE SECTOR (+' +
-                (team.telematics?.driftDistanceM || 185) +
-                'm)</span>'
-              : ''
-          }<br/>${team.sector}<br/>${team.currentTask}<br/>Radio: ${team.radioChannel}`,
+          `<div style="font-family: 'JetBrains Mono', monospace; font-size: 11px;">
+            <b>Team ${team.callsign} · ${team.status.toUpperCase()}</b>
+            ${
+              team.isDrifted
+                ? '<br/><span style="color: #DC2626; font-weight: bold;">DRIFTED OUTSIDE SECTOR (+' +
+                  (team.telematics?.driftDistanceM || 185) +
+                  'm)</span>'
+                : ''
+            }
+            <br/>Grid: <b>${team.telematics?.osGridRef || 'SN 9864 2138'}</b> · Alt: ${team.telematics?.altitudeM || 680}m
+            <br/>Vec: ${team.telematics?.headingDeg || 0}° ${team.telematics?.headingCardinal || 'N'} @ ${team.speedKmh} km/h
+            <br/>Task: ${team.currentTask}
+          </div>`,
           {
             sticky: true,
-            className: 'bg-white text-[#1C2E2A] border border-[#E2E8E5] text-xs px-2 py-1.5 rounded shadow',
+            className: 'bg-[#081820] text-[#E0F8D0] border border-[#88C070] text-xs px-2.5 py-1.5 rounded shadow-lg',
           }
         );
         layers.addLayer(marker);
@@ -595,12 +695,13 @@ export const OsmMap: React.FC<OsmMapProps> = ({
       layers.addLayer(marker);
     }
 
-    // Auto-fit bounds on first load if rings exist
-    if (!isPicker && rings.length > 0 && mapInstanceRef.current) {
+    // Auto-fit bounds only once on initial load if rings exist
+    if (!isPicker && !hasFitInitialBoundsRef.current && rings.length > 0 && mapInstanceRef.current) {
       const outerRing = rings.reduce((max, r) => (r.radius_m > max.radius_m ? r : max), rings[0]);
       if (outerRing) {
         const bounds = L.latLng([pinLocation.lat, pinLocation.lon]).toBounds(outerRing.radius_m * 2.2);
         map.fitBounds(bounds, { padding: [24, 24] });
+        hasFitInitialBoundsRef.current = true;
       }
     }
   }, [
@@ -611,6 +712,7 @@ export const OsmMap: React.FC<OsmMapProps> = ({
     regions,
     dataSources,
     activeTacticalTeams,
+    selectedTeamId,
     candidates,
     activeToggles,
     activeWeather,

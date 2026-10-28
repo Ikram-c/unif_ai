@@ -6,18 +6,13 @@ import {
   FileText,
   Settings as SettingsIcon,
   ShieldCheck,
-  Radio,
-  Plus,
-  HardDrive,
-  CheckCircle2,
-  AlertTriangle,
-  Menu,
   X,
   Globe,
-  Sparkles,
+  Loader2,
 } from 'lucide-react';
 import {
   AberTechBrand,
+  ActivityRing,
   DualStatusHeader,
   MobileBottomNav,
   PrimaryButton,
@@ -42,7 +37,7 @@ import { TimeFormat } from './core/TimeFormat';
 export const App: React.FC = () => {
   const [rescues, setRescues] = useState<Rescue[]>(rescueRepository.allRescues);
   const [selectedRescueId, setSelectedRescueId] = useState<string>('SAR-026');
-  const [currentStep, setCurrentStep] = useState<number>(1); // 1 through 9
+  const [currentStep, setCurrentStep] = useState<number>(7); // Default to 07 Active Operation (Live Position Tracking & Team Status)
   const [isLandingPage, setIsLandingPage] = useState<boolean>(false);
   const [showSettings, setShowSettings] = useState<boolean>(false);
   const [showLogObservationModal, setShowLogObservationModal] = useState<boolean>(false);
@@ -75,12 +70,11 @@ export const App: React.FC = () => {
 
   // Observation modal state
   const [obsNote, setObsNote] = useState('');
-  const [obsSector, setObsSector] = useState('Sector A');
+  const [obsSector, setObsSector] = useState('Sector A (Alpha)');
 
   useEffect(() => {
     return rescueRepository.subscribeRescues((list) => {
       setRescues(list);
-      // If active selection no longer exists, default to first
       if (list.length > 0 && !list.find((r) => r.id === selectedRescueId)) {
         setSelectedRescueId(list[0].id);
       }
@@ -413,66 +407,67 @@ export const App: React.FC = () => {
     setShowLogObservationModal(false);
   };
 
-  // Desktop Navigation items
+  // Desktop Navigation items — Clear hierarchy & >= 44pt tap targets
   const navItems = [
-    { step: 1, label: '01 Field Workspace', icon: <Layers size={17} /> },
-    { step: 7, label: '07 Active Operation', icon: <Compass size={17} /> },
-    { step: 8, label: '08 Evidence Review', icon: <Camera size={17} /> },
-    { step: 9, label: '09 Audit Record & Close', icon: <FileText size={17} /> },
+    { step: 1, label: '01 Field Workspace', icon: <Layers size={19} /> },
+    { step: 7, label: '07 Active Operation', icon: <Compass size={19} /> },
+    { step: 8, label: '08 Evidence Review', icon: <Camera size={19} /> },
+    { step: 9, label: '09 Audit & Closure', icon: <FileText size={19} /> },
   ];
 
   return (
-    <div className="flex h-screen w-full overflow-hidden bg-[#F4F6F5] text-[#1C2E2A] select-none">
-      {/* 1. Desktop Persistent Left Sidebar (≥1024px, 264px width) */}
-      <aside className="hidden lg:flex flex-col w-[264px] bg-white border-r border-[#E2E8E5] shrink-0 z-20">
+    <div className="h-screen w-full overflow-hidden bg-[#EDF2EF] text-[#081820] flex lg:grid lg:grid-cols-[minmax(268px,296px)_1fr]">
+      {/* 1. Desktop Sidebar (Apple HIG Sidebars: W = 260-320pt, grid-template-columns: minmax(260px, 320px) 1fr) */}
+      <aside className="hidden lg:flex flex-col bg-white border-r border-[#CBD8D4] shrink-0 z-20 overflow-y-auto">
         {/* Brand Header */}
-        <div className="p-4 border-b border-[#E2E8E5]">
+        <div className="p-4 border-b border-[#CBD8D4]">
           <AberTechBrand />
         </div>
 
         {/* Landing Page & Pitch Highlight Button */}
-        <div className="p-3 pb-1 border-b border-[#E2E8E5]/70">
+        <div className="p-3.5 pb-2 border-b border-[#CBD8D4]/70">
           <button
             type="button"
             onClick={() => setIsLandingPage(true)}
-            className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-bold transition-all shadow-xs ${
+            className={`w-full flex items-center justify-between px-3.5 py-2.5 min-h-[46px] rounded-xl text-sm font-bold transition-colors border cursor-pointer ${
               isLandingPage
-                ? 'bg-[#0B6758] text-white ring-2 ring-[#86EFAC]'
-                : 'bg-gradient-to-r from-[#1C2E2A] to-[#142320] text-white hover:bg-[#253D37]'
+                ? 'bg-[#0B6758] text-white border-[#085446]'
+                : 'bg-[#081820] text-white border-[#081820] hover:bg-[#1B4D3E]'
             }`}
           >
-            <div className="flex items-center gap-2">
-              <Globe size={15} className="text-[#86EFAC]" />
-              <span>Landing Page & Pitch</span>
+            <div className="flex items-center gap-2.5">
+              <Globe size={18} className="text-[#88C070]" />
+              <span>Overview &amp; Pitch</span>
             </div>
-            <span className="text-[10px] bg-[#86EFAC]/20 text-[#86EFAC] px-1.5 py-0.5 rounded font-mono font-bold">
+            <span className="text-xs bg-[#88C070] text-[#081820] px-2 py-0.5 rounded-md font-mono font-bold">
               MVP
             </span>
           </button>
         </div>
 
         {/* Primary Step Navigation */}
-        <div className="p-3 space-y-1">
-          <div className="px-2 py-1 text-[11px] font-bold uppercase tracking-wider text-[#5A706A]">
-            Field Navigation
+        <div className="p-3.5 space-y-1.5">
+          <div className="px-2.5 py-1 text-xs font-bold text-[#1E3831]">
+            Mission Workflow
           </div>
           {navItems.map((item) => {
-            const isActive = !isLandingPage && currentStep === item.step;
+            const isActive = !isLandingPage && !showSettings && currentStep === item.step;
             return (
               <button
                 key={item.step}
                 type="button"
                 onClick={() => {
                   setIsLandingPage(false);
+                  setShowSettings(false);
                   setCurrentStep(item.step);
                 }}
-                className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-semibold transition-all ${
+                className={`w-full flex items-center gap-3 px-3.5 py-2.5 min-h-[46px] rounded-xl text-sm font-semibold transition-colors cursor-pointer border ${
                   isActive
-                    ? 'bg-[#E1ECE8] text-[#0B6758] shadow-2xs font-bold'
-                    : 'text-[#1C2E2A] hover:bg-[#F4F6F5]'
+                    ? 'bg-[#E1ECE8] text-[#064E3B] border-[#0B6758] font-bold'
+                    : 'bg-transparent text-[#081820] border-transparent hover:bg-[#EDF2EF]'
                 }`}
               >
-                <span className={isActive ? 'text-[#0B6758]' : 'text-[#5A706A]'}>{item.icon}</span>
+                <span className={isActive ? 'text-[#0B6758]' : 'text-[#1E3831]'}>{item.icon}</span>
                 <span>{item.label}</span>
               </button>
             );
@@ -480,26 +475,26 @@ export const App: React.FC = () => {
         </div>
 
         {/* Setup Wizard Steps Sub-section (if in setup) */}
-        {currentStep >= 2 && currentStep <= 6 && (
-          <div className="p-3 border-t border-[#E2E8E5] bg-[#F4F6F5]/50 space-y-1">
-            <div className="px-2 py-1 text-[11px] font-bold uppercase tracking-wider text-[#0B6758]">
-              Setup Wizard
+        {currentStep >= 2 && currentStep <= 6 && !isLandingPage && !showSettings && (
+          <div className="p-3.5 border-t border-[#CBD8D4] bg-[#F6F9F7] space-y-1">
+            <div className="px-2.5 py-1 text-xs font-bold text-[#0B6758]">
+              Incident Setup Steps
             </div>
             {[
-              { s: 2, name: '02 Setup 1: Incident' },
-              { s: 3, name: '03 Setup 2: Location' },
-              { s: 4, name: '04 Setup 3: Window' },
-              { s: 5, name: '05 Estimated Area' },
-              { s: 6, name: '06 Commander Review' },
+              { s: 2, name: '02 Incident Details' },
+              { s: 3, name: '03 Last Known Point' },
+              { s: 4, name: '04 Subject & Window' },
+              { s: 5, name: '05 Search Plan Area' },
+              { s: 6, name: '06 Resource Review' },
             ].map((stepItem) => (
               <button
                 key={stepItem.s}
                 type="button"
                 onClick={() => setCurrentStep(stepItem.s)}
-                className={`w-full text-left px-3 py-1.5 rounded text-xs transition-colors ${
+                className={`w-full text-left px-3.5 py-2 min-h-[44px] rounded-xl text-xs font-semibold transition-colors cursor-pointer ${
                   currentStep === stepItem.s
-                    ? 'font-bold text-[#0B6758] bg-[#E1ECE8]'
-                    : 'text-[#5A706A] hover:text-[#1C2E2A]'
+                    ? 'font-bold text-white bg-[#0B6758]'
+                    : 'text-[#081820] hover:bg-[#E1ECE8]/60'
                 }`}
               >
                 {stepItem.name}
@@ -508,22 +503,27 @@ export const App: React.FC = () => {
           </div>
         )}
 
-        {/* Selected Mission Mini Card */}
+        {/* Selected Mission Summary Card with Activity Ring */}
         {currentRescue && (
-          <div className="p-3 mx-3 my-2 bg-[#F4F6F5] rounded-xl border border-[#E2E8E5] space-y-1.5">
-            <div className="flex items-center justify-between text-[11px]">
-              <span className="font-mono font-bold text-[#0B6758] bg-[#E1ECE8] px-1.5 py-0.5 rounded">
+          <div className="p-3.5 mx-3.5 my-2 bg-[#F6F9F7] text-[#081820] rounded-xl border border-[#B8C9C3] space-y-2.5">
+            <div className="flex items-center justify-between text-xs">
+              <span className="font-mono font-bold text-[#064E3B] bg-[#E1ECE8] px-2 py-0.5 rounded border border-[#A7C7BE] tabular-nums">
                 {currentRescue.mission_reference}
               </span>
-              <span className="text-[10px] text-[#5A706A] font-semibold">
+              <span className="text-xs text-[#1E3831] font-mono font-semibold">
                 Cmdr {currentRescue.commander_reference}
               </span>
             </div>
-            <div className="text-xs font-bold text-[#1C2E2A] truncate">
-              {currentRescue.mission_name}
+            <div>
+              <div className="text-sm font-bold text-[#081820] truncate">
+                {currentRescue.mission_name}
+              </div>
+              <div className="text-xs text-[#1E3831] truncate">
+                {currentRescue.location_label}
+              </div>
             </div>
-            <div className="text-[11px] text-[#5A706A] truncate">
-              {currentRescue.location_label}
+            <div className="pt-2 border-t border-[#CBD8D4] flex items-center justify-between">
+              <ActivityRing percentage={68} size={36} strokeWidth={4} label="Sector Sweep" />
             </div>
           </div>
         )}
@@ -531,73 +531,86 @@ export const App: React.FC = () => {
         {/* Spacer */}
         <div className="flex-1" />
 
-        {/* Bottom Hardware Tag & Statutory Retention */}
-        <div className="p-3 border-t border-[#E2E8E5] space-y-2 bg-[#F4F6F5]/70">
-          <div className="flex items-center justify-between text-[11px] text-[#5A706A]">
-            <span className="font-mono">{settingsStore.settings.deviceTag}</span>
+        {/* Bottom Hardware Tag & Settings */}
+        <div className="p-3.5 border-t border-[#CBD8D4] space-y-2.5 bg-[#F6F9F7]">
+          <div className="flex items-center justify-between text-xs font-semibold text-[#1E3831]">
+            <span className="font-mono font-bold bg-white px-2.5 py-1 rounded-md border border-[#CBD8D4] text-[#081820]">
+              {settingsStore.settings.deviceTag}
+            </span>
             <span className="text-[#0B6758] font-bold">Offline Ready</span>
           </div>
-          <div className="flex items-center gap-1.5 text-[10px] text-[#5A706A]">
-            <ShieldCheck size={12} className="text-[#0B6758] shrink-0" />
-            <span>3-Yr 2 CFR 200 Retention</span>
+          <div className="flex items-center gap-2 text-xs font-medium text-[#1E3831]">
+            <ShieldCheck size={16} className="text-[#0B6758] shrink-0" />
+            <span>3-Year 2 CFR 200 Retention</span>
           </div>
 
           <button
             type="button"
-            onClick={() => setShowSettings(true)}
-            className="w-full mt-1 flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg border border-[#E2E8E5] bg-white hover:bg-[#F4F6F5] text-xs font-semibold text-[#1C2E2A] transition-colors"
+            onClick={() => {
+              setIsLandingPage(false);
+              setShowSettings(true);
+            }}
+            className={`w-full flex items-center justify-center gap-2 px-3.5 py-2.5 min-h-[44px] rounded-xl border text-sm font-bold transition-colors cursor-pointer ${
+              showSettings
+                ? 'bg-[#0B6758] text-white border-[#085446]'
+                : 'bg-white hover:bg-[#E1ECE8] text-[#081820] border-[#8BA39B]'
+            }`}
           >
-            <SettingsIcon size={14} className="text-[#5A706A]" />
-            <span>Hardware & Settings</span>
+            <SettingsIcon size={17} />
+            <span>Display &amp; Accessibility</span>
           </button>
         </div>
       </aside>
 
       {/* 2. Main Content Area */}
-      <div className="flex-1 flex flex-col h-full overflow-hidden">
-        {/* Top Dual Status Header with Persistence, Radio state, and Pitch Toggle */}
-        <div className="shrink-0 flex items-center justify-between bg-[#F4F6F5] border-b border-[#E2E8E5] pr-3">
-          <div className="flex-1">
+      <div className="flex-1 flex flex-col h-full overflow-hidden min-w-0">
+        {/* Top Dual Status Header with Persistence, Radio state, Dynamic Type Scale, and Pitch Toggle */}
+        <div className="shrink-0 flex items-center justify-between bg-[#EDF2EF] border-b border-[#CBD8D4] pr-4">
+          <div className="flex-1 min-w-0">
             <DualStatusHeader />
           </div>
           <button
             type="button"
             onClick={() => setIsLandingPage(!isLandingPage)}
-            className={`hidden sm:flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-bold transition-all shadow-xs shrink-0 ${
+            className={`hidden sm:inline-flex items-center gap-2 px-4 py-2 min-h-[44px] rounded-xl text-xs font-bold transition-colors border shrink-0 cursor-pointer ${
               isLandingPage
-                ? 'bg-[#0B6758] text-white hover:bg-[#07483D]'
-                : 'bg-white hover:bg-[#E1ECE8] text-[#0B6758] border border-[#0B6758]/30'
+                ? 'bg-[#0B6758] text-white border-[#085446] hover:bg-[#085446]'
+                : 'bg-white hover:bg-[#E1ECE8] text-[#081820] border-[#8BA39B]'
             }`}
           >
-            <Globe size={13} />
-            <span>{isLandingPage ? 'Exit to SAR Portal' : 'Landing Page & Pitch'}</span>
+            <Globe size={16} className="text-[#0B6758]" />
+            <span>{isLandingPage ? 'Return to SAR Portal' : 'Overview & Pitch'}</span>
           </button>
         </div>
 
         {/* Mobile App Bar Header (<1024px) */}
-        <div className="lg:hidden shrink-0 flex items-center justify-between px-3 py-2 bg-white border-b border-[#E2E8E5]">
+        <div className="lg:hidden shrink-0 flex items-center justify-between px-4 py-2.5 bg-white border-b border-[#CBD8D4]">
           <AberTechBrand />
           <div className="flex items-center gap-2">
             <button
               type="button"
               onClick={() => setIsLandingPage(!isLandingPage)}
-              className="px-2.5 py-1 rounded text-xs font-bold bg-[#E1ECE8] text-[#0B6758]"
+              className="px-3.5 py-2 min-h-[44px] min-w-[44px] rounded-xl text-xs font-bold bg-[#081820] text-white cursor-pointer"
             >
-              {isLandingPage ? 'SAR Portal' : 'Pitch'}
+              {isLandingPage ? 'Portal' : 'Overview'}
             </button>
             <button
               type="button"
-              onClick={() => setShowSettings(true)}
-              className="p-1.5 rounded-lg text-[#5A706A] hover:bg-[#F4F6F5]"
-              title="Settings"
+              onClick={() => {
+                setIsLandingPage(false);
+                setShowSettings(!showSettings);
+              }}
+              className="p-2.5 min-h-[44px] min-w-[44px] flex items-center justify-center rounded-xl text-[#081820] bg-[#EDF2EF] border border-[#B8C9C3] hover:bg-[#E1ECE8] cursor-pointer"
+              title="Display & Accessibility Settings"
+              aria-label="Display and Accessibility Settings"
             >
-              <SettingsIcon size={18} />
+              <SettingsIcon size={20} />
             </button>
           </div>
         </div>
 
-        {/* Active Screen Container */}
-        <main className="flex-1 flex flex-col overflow-hidden relative">
+        {/* Active Screen Container (Scroll View with overscroll-behavior: contain) */}
+        <main className="flex-1 flex flex-col overflow-hidden relative hig-scroll-view">
           {isLandingPage ? (
             <LandingPage
               onLaunchOperation={() => {
@@ -684,44 +697,59 @@ export const App: React.FC = () => {
               onReopen={handleReopenMission}
             />
           ) : (
-            <div className="flex-1 flex items-center justify-center p-6 text-sm text-[#5A706A]">
-              Loading incident...
+            <div className="flex-1 flex items-center justify-center gap-2.5 p-6 text-base font-medium text-[#1E3831]">
+              <Loader2 size={20} className="animate-spin text-[#0B6758]" />
+              <span>Loading incident workspace...</span>
             </div>
           )}
         </main>
 
-        {/* Mobile Bottom Navigation (<1024px) */}
-        {!showSettings && (
+        {/* Mobile Bottom Tab Bar (<1024px) */}
+        {!showSettings && !isLandingPage && (
           <MobileBottomNav currentStep={currentStep} onNavigateStep={(step) => setCurrentStep(step)} />
         )}
       </div>
 
-      {/* Modal: Log Observation / Field Note */}
+      {/* Modal Sheet: Log Observation / Field Note (Apple HIG Alerts & Sheets: explicit dismissal, 44pt inputs, 17px font) */}
       {showLogObservationModal && (
-        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-xl max-w-md w-full p-5 space-y-4 shadow-xl border border-[#E2E8E5]">
-            <div className="flex items-center justify-between border-b border-[#E2E8E5] pb-3">
-              <h3 className="font-bold text-sm text-[#1C2E2A]">
+        <div
+          className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4"
+          onClick={() => setShowLogObservationModal(false)}
+        >
+          <div
+            className="bg-white rounded-2xl max-w-lg w-full p-5 sm:p-6 space-y-5 shadow-2xl border border-[#B8C9C3]"
+            onClick={(e) => e.stopPropagation()}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="log-obs-modal-title"
+          >
+            <div className="flex items-center justify-between border-b border-[#CBD8D4] pb-3">
+              <h3 id="log-obs-modal-title" className="font-bold text-base text-[#081820]">
                 Log Field Observation / Radio Note
               </h3>
               <button
                 type="button"
                 onClick={() => setShowLogObservationModal(false)}
-                className="text-gray-400 hover:text-gray-600 text-lg font-bold"
+                className="min-h-[44px] min-w-[44px] inline-flex items-center justify-center rounded-xl text-[#1E3831] hover:bg-[#EDF2EF] transition-colors cursor-pointer"
+                aria-label="Close modal"
               >
-                ×
+                <X size={20} />
               </button>
             </div>
 
-            <div className="space-y-3">
+            <div className="space-y-4">
               <div>
-                <label className="block text-xs font-bold uppercase tracking-wider text-[#1C2E2A] mb-1">
+                <label
+                  htmlFor="obs-sector-select"
+                  className="block text-sm font-bold text-[#081820] mb-1.5"
+                >
                   Sector / Source
                 </label>
                 <select
+                  id="obs-sector-select"
                   value={obsSector}
                   onChange={(e) => setObsSector(e.target.value)}
-                  className="w-full px-3 py-2 rounded-lg border border-[#E2E8E5] text-xs bg-[#F4F6F5]"
+                  className="w-full px-3.5 py-2.5 min-h-[44px] rounded-xl border border-[#8BA39B] text-[#081820] bg-[#F6F9F7] focus:bg-white"
                 >
                   <option value="Sector A (Alpha)">Sector A · Northern path (Team Alpha)</option>
                   <option value="Sector B (Bravo)">Sector B · Southern drainage (Team Bravo)</option>
@@ -731,20 +759,24 @@ export const App: React.FC = () => {
               </div>
 
               <div>
-                <label className="block text-xs font-bold uppercase tracking-wider text-[#1C2E2A] mb-1">
+                <label
+                  htmlFor="obs-entry-textarea"
+                  className="block text-sm font-bold text-[#081820] mb-1.5"
+                >
                   Observation Entry
                 </label>
                 <textarea
+                  id="obs-entry-textarea"
                   rows={3}
                   value={obsNote}
                   onChange={(e) => setObsNote(e.target.value)}
                   placeholder="e.g. Footprints identified heading NE on ridge path; visibility dropping to 2km."
-                  className="w-full px-3 py-2 rounded-lg border border-[#E2E8E5] text-xs bg-[#F4F6F5] leading-relaxed"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-[#8BA39B] text-[#081820] bg-[#F6F9F7] focus:bg-white leading-relaxed"
                 />
               </div>
             </div>
 
-            <div className="flex items-center justify-end gap-2 pt-2 border-t border-[#E2E8E5]">
+            <div className="flex items-center justify-end gap-3 pt-3 border-t border-[#CBD8D4]">
               <SecondaryButton onClick={() => setShowLogObservationModal(false)}>
                 Cancel
               </SecondaryButton>

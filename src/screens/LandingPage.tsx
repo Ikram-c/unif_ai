@@ -74,31 +74,28 @@ export const LandingPage: React.FC<LandingPageProps> = ({
       </header>
 
       {/* Hero Section */}
-      <section className="relative bg-gradient-to-b from-[#1C2E2A] via-[#142320] to-[#1C2E2A] text-white px-4 sm:px-8 py-12 sm:py-20 border-b border-[#0B6758]/30 overflow-hidden">
-        {/* Subtle background grid pattern */}
-        <div className="absolute inset-0 opacity-10 pointer-events-none bg-[radial-gradient(#0B6758_1px,transparent_1px)] [background-size:20px_20px]" />
-
+      <section className="relative bg-dither-dark text-[#E0F8D0] px-4 sm:px-8 py-12 sm:py-20 border-b-2 border-[#081820] overflow-hidden">
         <div className="max-w-5xl mx-auto relative z-10 space-y-6 text-center sm:text-left">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#0B6758]/40 border border-[#0B6758] text-[#86EFAC] text-xs font-mono font-bold">
-            <span className="w-2 h-2 rounded-full bg-[#10B981] animate-ping" />
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded bg-[#081820] border border-[#88C070] text-[#FACC15] text-xs font-mono font-bold">
+            <span className="w-2 h-2 rounded-full bg-[#88C070] animate-ping" />
             <span>OPERATIONAL MVP · BANNAU BRYCHEINIOG DEMONSTRATION</span>
           </div>
 
-          <h1 className="text-3xl sm:text-5xl lg:text-6xl font-black tracking-tight leading-tight max-w-4xl">
-            Compressing <span className="text-[#86EFAC]">500 km²</span> blind wilderness searches into{' '}
-            <span className="text-[#F5A623]">1 km²</span> targeted extractions within ten minutes.
+          <h1 className="text-3xl sm:text-5xl lg:text-6xl font-black tracking-tight leading-tight max-w-4xl text-white">
+            Compressing <span className="text-[#88C070]">500 km²</span> blind wilderness searches into{' '}
+            <span className="text-[#FACC15]">1 km²</span> targeted extractions within ten minutes.
           </h1>
 
-          <p className="text-sm sm:text-lg text-gray-300 max-w-3xl leading-relaxed">
+          <p className="text-sm sm:text-lg text-[#E0F8D0]/85 max-w-3xl leading-relaxed">
             The mission orchestration platform engineered for Mountain Rescue and Austere Emergency Services.
             Uniting kinematic wander-radius probability contours, real-time terrain-weather causality modeling,
-            sub-second proximity geofencing, and automated 2 C.F.R. § 200 grant audit trails.
+            live GPS position tracking, sub-second proximity geofencing, and automated 2 C.F.R. § 200 grant audit trails.
           </p>
 
           <div className="pt-2 flex flex-wrap items-center justify-center sm:justify-start gap-3">
             <PrimaryButton
               onClick={onLaunchOperation}
-              className="text-sm py-2.5 px-5 bg-[#0B6758] hover:bg-[#07483D] text-white shadow-lg text-base"
+              className="text-sm py-2.5 px-5 bg-[#FACC15] hover:bg-[#EAB308] text-[#081820] font-extrabold shadow-[3px_3px_0px_#081820]"
               icon={<Play size={16} />}
             >
               Launch Live Operational Portal (Step 07)
@@ -106,16 +103,16 @@ export const LandingPage: React.FC<LandingPageProps> = ({
 
             <SecondaryButton
               onClick={() => setShowAboutModal(true)}
-              className="text-sm py-2.5 px-4 bg-white/10 hover:bg-white/20 text-white border-white/20"
+              className="text-sm py-2.5 px-4 bg-[#081820] hover:bg-[#1B4D3E] text-[#E0F8D0] border-[#88C070]"
               icon={<Info size={15} />}
             >
-              Read "About Me" & AberTech
+              Read &ldquo;About Me&rdquo; &amp; AberTech
             </SecondaryButton>
 
             <button
               type="button"
               onClick={onStartNewMission}
-              className="text-xs font-semibold text-[#86EFAC] hover:underline px-3 py-2 flex items-center gap-1"
+              className="text-xs font-semibold text-[#88C070] hover:underline px-3 py-2 flex items-center gap-1 cursor-pointer"
             >
               <span>Or begin new incident setup (Step 01)</span>
               <ChevronRight size={14} />
@@ -123,22 +120,22 @@ export const LandingPage: React.FC<LandingPageProps> = ({
           </div>
 
           {/* Quick Metrics Ribbon */}
-          <div className="pt-8 grid grid-cols-2 sm:grid-cols-4 gap-3 text-left">
-            <div className="bg-[#142320]/80 border border-[#0B6758]/40 rounded-xl p-3">
-              <div className="text-xl sm:text-2xl font-black text-[#86EFAC] font-mono">10 MIN</div>
-              <div className="text-xs text-gray-300 mt-0.5">Time to 1 km² convergence</div>
+          <div className="pt-8 grid grid-cols-2 sm:grid-cols-4 gap-3 text-left font-mono tabular-nums">
+            <div className="bg-[#081820] border border-[#88C070] rounded-lg p-3 shadow-[3px_3px_0px_#081820]">
+              <div className="text-xl sm:text-2xl font-black text-[#88C070]">10 MIN</div>
+              <div className="text-xs text-[#E0F8D0]/80 mt-0.5 font-sans">Time to 1 km² convergence</div>
             </div>
-            <div className="bg-[#142320]/80 border border-[#0B6758]/40 rounded-xl p-3">
-              <div className="text-xl sm:text-2xl font-black text-white font-mono">&lt;$5 / HR</div>
-              <div className="text-xs text-gray-300 mt-0.5">Variable compute vs $10k/hr helo</div>
+            <div className="bg-[#081820] border border-[#88C070] rounded-lg p-3 shadow-[3px_3px_0px_#081820]">
+              <div className="text-xl sm:text-2xl font-black text-white">&lt;$5 / HR</div>
+              <div className="text-xs text-[#E0F8D0]/80 mt-0.5 font-sans">Variable compute vs $10k/hr helo</div>
             </div>
-            <div className="bg-[#142320]/80 border border-[#0B6758]/40 rounded-xl p-3">
-              <div className="text-xl sm:text-2xl font-black text-[#F5A623] font-mono">70.4%</div>
-              <div className="text-xs text-gray-300 mt-0.5">Demand error eliminated</div>
+            <div className="bg-[#FACC15] border border-[#081820] rounded-lg p-3 shadow-[3px_3px_0px_#081820] text-[#081820]">
+              <div className="text-xl sm:text-2xl font-black">70.4%</div>
+              <div className="text-xs font-bold mt-0.5 font-sans">Demand error eliminated</div>
             </div>
-            <div className="bg-[#142320]/80 border border-[#0B6758]/40 rounded-xl p-3">
-              <div className="text-xl sm:text-2xl font-black text-[#8ED0FF] font-mono">ZERO CLOUD</div>
-              <div className="text-xs text-gray-300 mt-0.5">Offline edge on legacy laptops</div>
+            <div className="bg-[#081820] border border-[#88C070] rounded-lg p-3 shadow-[3px_3px_0px_#081820]">
+              <div className="text-xl sm:text-2xl font-black text-[#8ED0FF]">ZERO CLOUD</div>
+              <div className="text-xs text-[#E0F8D0]/80 mt-0.5 font-sans">Offline edge on legacy laptops</div>
             </div>
           </div>
         </div>
@@ -148,14 +145,14 @@ export const LandingPage: React.FC<LandingPageProps> = ({
       <section className="px-4 sm:px-8 py-12 max-w-6xl mx-auto w-full space-y-10">
         <div className="text-center max-w-3xl mx-auto space-y-2">
           <span className="text-xs font-bold uppercase tracking-wider text-[#0B6758] font-mono">
-            The Push of Struggle // Why 500 km² Searches Fail
+            The Push of Struggle · Why 500 km² Searches Fail
           </span>
           <h2 className="text-2xl sm:text-3xl font-black text-[#1C2E2A]">
-            The Cost-Speed-Coverage Asymmetry in Search & Rescue
+            The Cost-Speed-Coverage Asymmetry in Search &amp; Rescue
           </h2>
           <p className="text-sm text-[#5A706A]">
             Surging upland footfall (+51%) meets frozen municipal park budgets and volunteer burnout.
-            75% to 85% of technical tools fail adoption because they ignore the incident commander's operational reality.
+            75% to 85% of technical tools fail adoption because they ignore the incident commander&apos;s operational reality.
           </p>
         </div>
 

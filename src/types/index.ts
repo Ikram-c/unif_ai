@@ -235,6 +235,9 @@ export interface ServerStatus {
   detail: string;
 }
 
+export type FieldUiScale = 'standard' | 'weather-lg' | 'storm-xl';
+export type FieldLightingCondition = 'poor-light-hivis' | 'night-vision' | 'daylight-field';
+
 export interface AppSettings {
   baseUrl: string;
   forceDemo: boolean;
@@ -243,12 +246,17 @@ export interface AppSettings {
   activeMapPack: string; // "Bannau map pack"
   deviceTag: string; // "ABER-04"
   darkMode: boolean; // Field appearance toggle
+  uiScale: FieldUiScale; // Scaled font & UI elements for poor light / bad weather
+  lightingCondition: FieldLightingCondition; // High-contrast poor light / night vision mode
+  gloveMode: boolean; // Enforces >=48px touch targets & thick borders for wet/gloved hands
 }
 
 export type CausalityViabilityLevel = 'VIABLE' | 'DEGRADED' | 'RESTRICTED' | 'BLOCKED';
 export type TerrainSlope = 'FLAT' | 'MODERATE' | 'STEEP' | 'CLIFF';
 export type TerrainSubstrate = 'MOORLAND' | 'TRACK' | 'SCREE' | 'FOREST' | 'CRAG' | 'WATER';
 export type TeamCallsign = 'Alpha' | 'Bravo' | 'UAV-01' | 'K9-Rex' | 'Tech-1' | 'Rescue-936';
+
+export type TacticalTeamStatus = 'Ready' | 'In progress' | 'Holding' | 'Returning' | 'SOS / Assist' | 'Reconciled';
 
 export interface TeamTelematics {
   osGridRef: string;
@@ -259,6 +267,9 @@ export interface TeamTelematics {
   heartRateBpm?: number;
   batteryVoltage?: number;
   gpsLockSats: number;
+  cepRadiusM?: number;
+  distanceTraveledKm?: number;
+  etaMinutes?: number;
   driftDistanceM?: number;
   breachHazard?: string;
 }
@@ -271,12 +282,13 @@ export interface TacticalTeam {
   personnel: number;
   sector: string;
   assignedHexId?: string;
-  status: 'Ready' | 'In progress' | 'Reconciled' | 'Holding' | 'Returning';
+  status: TacticalTeamStatus;
   radioChannel: string;
   endurancePct: number;
   batteryPct?: number;
   speedKmh: number;
   position: GeoPosition;
+  targetWaypoint?: GeoPosition;
   breadcrumbs: GeoPosition[];
   carriedEquipment: string[];
   currentTask: string;
@@ -284,6 +296,15 @@ export interface TacticalTeam {
   isDrifted?: boolean;
   assignedSectorBoundaryLabel?: string;
   telematics?: TeamTelematics;
+}
+
+export interface LivePositionEvent {
+  id: string;
+  timestampUtc: string;
+  callsign: TeamCallsign;
+  eventType: 'GPS_FIX' | 'STATUS_CHANGE' | 'WAYPOINT_TASK' | 'RADIO_PING' | 'GEOFENCE_ALERT';
+  summary: string;
+  coordinates: string;
 }
 
 export interface CellTerrainInfo {

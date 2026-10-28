@@ -1,21 +1,14 @@
 import React from 'react';
 import {
-  ShieldAlert,
   AlertTriangle,
-  CheckCircle2,
-  XCircle,
   Users,
-  Compass,
   Mountain,
-  Wind,
-  Footprints,
   Wrench,
   X,
-  ArrowRight,
   TrendingUp,
 } from 'lucide-react';
-import { CellCausalityReport, SearchCell, TacticalTeam } from '../types';
-import { PrimaryButton, SecondaryButton, StatusBadge } from './Common';
+import { CellCausalityReport, SearchCell } from '../types';
+import { SecondaryButton } from './Common';
 
 interface CellCausalityInspectorProps {
   cell: SearchCell;
@@ -35,28 +28,44 @@ export const CellCausalityInspector: React.FC<CellCausalityInspectorProps> = ({
   const getViabilityColor = (level: string) => {
     switch (level) {
       case 'VIABLE':
-        return 'text-[#0B6758] bg-[#E1ECE8] border-[#0B6758]';
+        return 'text-[#064E3B] bg-[#E1ECE8] border-[#0B6758]';
       case 'DEGRADED':
-        return 'text-[#9A690B] bg-[#FEF3DD] border-[#F3D794]';
+        return 'text-[#78350F] bg-[#FEF3DD] border-[#D97706]';
       case 'RESTRICTED':
-        return 'text-[#D97706] bg-[#FEF3DD] border-[#D97706]';
+        return 'text-[#78350F] bg-[#FEF3DD] border-[#D97706]';
       case 'BLOCKED':
-        return 'text-[#DC2626] bg-[#FEE2E2] border-[#F87171]';
+        return 'text-[#991B1B] bg-[#FEE2E2] border-[#DC2626]';
       default:
-        return 'text-[#5A706A] bg-[#F4F6F5] border-[#E2E8E5]';
+        return 'text-[#1E3831] bg-[#EDF2EF] border-[#B8C9C3]';
     }
   };
 
   const getEquipmentStatusBadge = (status: string) => {
     switch (status) {
       case 'OPTIMAL':
-        return <span className="text-[10px] font-bold text-[#0B6758] bg-[#E1ECE8] px-1.5 py-0.5 rounded">Optimal</span>;
+        return (
+          <span className="text-xs font-bold text-[#064E3B] bg-[#E1ECE8] px-2 py-0.5 rounded-full border border-[#A7C7BE]">
+            Optimal
+          </span>
+        );
       case 'USABLE':
-        return <span className="text-[10px] font-bold text-[#1C2E2A] bg-[#F4F6F5] border border-[#E2E8E5] px-1.5 py-0.5 rounded">Usable</span>;
+        return (
+          <span className="text-xs font-bold text-[#081820] bg-white border border-[#B8C9C3] px-2 py-0.5 rounded-full">
+            Usable
+          </span>
+        );
       case 'DEGRADED':
-        return <span className="text-[10px] font-bold text-[#9A690B] bg-[#FEF3DD] px-1.5 py-0.5 rounded">Degraded</span>;
+        return (
+          <span className="text-xs font-bold text-[#78350F] bg-[#FEF3DD] border border-[#D97706] px-2 py-0.5 rounded-full">
+            Degraded
+          </span>
+        );
       case 'PROHIBITED':
-        return <span className="text-[10px] font-bold text-[#DC2626] bg-[#FEE2E2] px-1.5 py-0.5 rounded">Prohibited</span>;
+        return (
+          <span className="text-xs font-bold text-[#991B1B] bg-[#FEE2E2] border border-[#DC2626] px-2 py-0.5 rounded-full">
+            Prohibited
+          </span>
+        );
       default:
         return null;
     }
@@ -64,29 +73,30 @@ export const CellCausalityInspector: React.FC<CellCausalityInspectorProps> = ({
 
   return (
     <div
-      className={`bg-white border border-[#0B6758] rounded-xl shadow-lg p-4 space-y-4 text-xs ${className}`}
+      className={`tactical-card rounded-2xl p-4 sm:p-5 space-y-4 text-xs ${className}`}
     >
       {/* Header */}
-      <div className="flex items-start justify-between border-b border-[#E2E8E5] pb-3">
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-lg bg-[#0B6758] text-white flex items-center justify-center font-bold">
-            <Mountain size={16} />
+      <div className="flex items-start justify-between border-b border-[#CBD8D4] pb-3.5">
+        <div className="flex items-center gap-3">
+          <div className="w-11 h-11 hig-app-icon bg-[#0B6758] text-white flex items-center justify-center font-bold shrink-0">
+            <Mountain size={20} />
           </div>
           <div>
-            <div className="flex items-center gap-2">
-              <span className="font-mono font-bold text-sm text-[#1C2E2A]">
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="font-mono font-bold text-base text-[#081820]">
                 Hexagon {report.cell_id}
               </span>
               <span
-                className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded border ${getViabilityColor(
+                className={`text-xs font-bold uppercase tracking-wide px-2.5 py-0.5 rounded-full border ${getViabilityColor(
                   report.viability
                 )}`}
               >
                 {report.viability} ({report.overall_score}%)
               </span>
             </div>
-            <p className="text-[11px] text-[#5A706A] font-mono">
-              Centre: {cell.centre.lat.toFixed(4)}° N, {Math.abs(cell.centre.lon).toFixed(4)}° W · {cell.area_km2.toFixed(2)} km²
+            <p className="text-xs text-[#1E3831] font-mono tabular-nums mt-0.5">
+              Centre: {cell.centre.lat.toFixed(4)}°N, {Math.abs(cell.centre.lon).toFixed(4)}°W ·{' '}
+              {cell.area_km2.toFixed(2)} km²
             </p>
           </div>
         </div>
@@ -94,36 +104,41 @@ export const CellCausalityInspector: React.FC<CellCausalityInspectorProps> = ({
         <button
           type="button"
           onClick={onClose}
-          className="p-1 rounded-md text-[#5A706A] hover:bg-[#F4F6F5] hover:text-[#1C2E2A] transition-colors"
+          className="min-h-[44px] min-w-[44px] inline-flex items-center justify-center rounded-xl text-[#1E3831] hover:bg-[#EDF2EF] hover:text-[#081820] transition-colors cursor-pointer"
           title="Close inspector"
+          aria-label="Close causality inspector"
         >
-          <X size={16} />
+          <X size={20} />
         </button>
       </div>
 
       {/* Terrain Parameters Strip */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
-        <div className="p-2 bg-[#F4F6F5] rounded-lg border border-[#E2E8E5]">
-          <span className="text-[#5A706A] block text-[10px]">Elevation</span>
-          <span className="font-bold text-[#1C2E2A] font-mono text-sm">
-            {report.terrain.elevation_m} m <span className="text-[10px] text-[#5A706A] font-normal">ASL</span>
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 text-xs">
+        <div className="p-2.5 bg-[#F6F9F7] rounded-xl border border-[#CBD8D4]">
+          <span className="text-[#1E3831] font-medium block">Elevation</span>
+          <span className="font-bold text-[#081820] font-mono text-sm tabular-nums">
+            {report.terrain.elevation_m} m ASL
           </span>
         </div>
-        <div className="p-2 bg-[#F4F6F5] rounded-lg border border-[#E2E8E5]">
-          <span className="text-[#5A706A] block text-[10px]">Slope Angle</span>
-          <span className="font-bold text-[#1C2E2A] font-mono text-sm">
-            {report.terrain.slope_deg}° <span className="text-[10px] text-[#5A706A] font-normal">({report.terrain.slope_category})</span>
+        <div className="p-2.5 bg-[#F6F9F7] rounded-xl border border-[#CBD8D4]">
+          <span className="text-[#1E3831] font-medium block">Slope Angle</span>
+          <span className="font-bold text-[#081820] font-mono text-sm tabular-nums">
+            {report.terrain.slope_deg}° ({report.terrain.slope_category})
           </span>
         </div>
-        <div className="p-2 bg-[#F4F6F5] rounded-lg border border-[#E2E8E5]">
-          <span className="text-[#5A706A] block text-[10px]">Substrate</span>
-          <span className="font-bold text-[#1C2E2A] text-sm">
+        <div className="p-2.5 bg-[#F6F9F7] rounded-xl border border-[#CBD8D4]">
+          <span className="text-[#1E3831] font-medium block">Substrate</span>
+          <span className="font-bold text-[#081820] text-sm">
             {report.terrain.substrate}
           </span>
         </div>
-        <div className="p-2 bg-[#F4F6F5] rounded-lg border border-[#E2E8E5]">
-          <span className="text-[#5A706A] block text-[10px]">Exposure</span>
-          <span className={`font-bold text-sm ${report.terrain.exposure_level === 'EXTREME' ? 'text-[#DC2626]' : 'text-[#1C2E2A]'}`}>
+        <div className="p-2.5 bg-[#F6F9F7] rounded-xl border border-[#CBD8D4]">
+          <span className="text-[#1E3831] font-medium block">Exposure</span>
+          <span
+            className={`font-bold text-sm ${
+              report.terrain.exposure_level === 'EXTREME' ? 'text-[#DC2626]' : 'text-[#081820]'
+            }`}
+          >
             {report.terrain.exposure_level}
           </span>
         </div>
@@ -131,16 +146,16 @@ export const CellCausalityInspector: React.FC<CellCausalityInspectorProps> = ({
 
       {/* Active Hazards Callout if any */}
       {report.terrain.hazard_tags.length > 0 && (
-        <div className="bg-[#FEF3DD] border border-[#F3D794] rounded-lg p-2.5 text-[11px] text-[#9A690B] space-y-1">
-          <div className="flex items-center gap-1.5 font-bold">
-            <AlertTriangle size={13} />
-            <span>Terrain & Environmental Hazards Detected:</span>
+        <div className="bg-[#FEF3DD] border border-[#D97706] rounded-xl p-3 text-xs text-[#78350F] space-y-1.5">
+          <div className="flex items-center gap-1.5 font-bold text-[#081820]">
+            <AlertTriangle size={15} className="text-[#B45309]" />
+            <span>Terrain &amp; Environmental Hazards Detected:</span>
           </div>
           <div className="flex flex-wrap gap-1.5">
             {report.terrain.hazard_tags.map((tag) => (
               <span
                 key={tag}
-                className="bg-white/80 px-2 py-0.5 rounded text-[10px] font-medium border border-[#F3D794]"
+                className="bg-white px-2.5 py-0.5 rounded-full text-xs font-semibold border border-[#D97706]"
               >
                 {tag}
               </span>
@@ -150,51 +165,52 @@ export const CellCausalityInspector: React.FC<CellCausalityInspectorProps> = ({
       )}
 
       {/* Primary Causality Recommendation */}
-      <div className="p-3 bg-[#E1ECE8] border border-[#0B6758]/30 rounded-lg space-y-1">
-        <span className="text-[10px] font-bold uppercase tracking-wider text-[#0B6758] flex items-center gap-1">
-          <TrendingUp size={12} />
+      <div className="p-3.5 bg-[#E1ECE8] border border-[#0B6758]/40 rounded-xl space-y-1">
+        <span className="text-xs font-bold text-[#064E3B] flex items-center gap-1.5">
+          <TrendingUp size={15} />
           <span>Causality Model Operational Guidance</span>
         </span>
-        <p className="text-xs font-semibold text-[#07483D]">
+        <p className="text-sm font-semibold text-[#081820]">
           {report.primary_recommendation}
         </p>
       </div>
 
-      {/* Team Viability Breakdown */}
-      <div className="space-y-2">
-        <span className="text-xs font-bold uppercase tracking-wider text-[#1C2E2A] flex items-center justify-between">
-          <span className="flex items-center gap-1.5">
-            <Users size={14} className="text-[#0B6758]" />
-            <span>Team Feasibility & Efficacy</span>
+      {/* Team Viability Breakdown (Lists & Tables: Row >= 44pt) */}
+      <div className="space-y-2.5">
+        <div className="flex items-center justify-between">
+          <span className="text-sm font-bold text-[#081820] flex items-center gap-1.5">
+            <Users size={16} className="text-[#0B6758]" />
+            <span>Team Feasibility &amp; Efficacy</span>
           </span>
-          <span className="text-[10px] font-mono text-[#5A706A]">
-            {report.team_assessments.filter((t) => t.viable).length} of {report.team_assessments.length} Viable
+          <span className="text-xs font-mono font-semibold text-[#1E3831]">
+            {report.team_assessments.filter((t) => t.viable).length} of{' '}
+            {report.team_assessments.length} Viable
           </span>
-        </span>
+        </div>
 
-        <div className="space-y-1.5">
+        <div className="divide-y divide-[#CBD8D4] border border-[#CBD8D4] rounded-xl overflow-hidden bg-[#F6F9F7]">
           {report.team_assessments.map((team) => (
             <div
               key={team.team_id}
-              className="p-2 rounded-lg bg-[#F4F6F5] border border-[#E2E8E5] flex items-start justify-between gap-2"
+              className="hig-list-row p-3 flex items-center justify-between gap-3"
             >
-              <div className="space-y-0.5 flex-1 min-w-0">
-                <div className="flex items-center gap-1.5">
-                  <span className="font-bold text-[#1C2E2A] text-xs">Team {team.callsign}</span>
+              <div className="space-y-1 flex-1 min-w-0">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="font-bold text-[#081820] text-sm">Team {team.callsign}</span>
                   <span
-                    className={`text-[9px] font-bold px-1.5 py-0.2 rounded border ${getViabilityColor(
+                    className={`text-xs font-bold px-2 py-0.5 rounded-full border ${getViabilityColor(
                       team.status
                     )}`}
                   >
                     {team.status}
                   </span>
                   {team.viable && (
-                    <span className="text-[10px] font-mono text-[#5A706A]">
+                    <span className="text-xs font-mono text-[#1E3831] tabular-nums">
                       {team.speed_kmh} km/h · {team.pod_pct}% POD
                     </span>
                   )}
                 </div>
-                <p className="text-[11px] text-[#5A706A] leading-tight">
+                <p className="text-xs text-[#1E3831] leading-snug">
                   {team.reason}
                 </p>
               </div>
@@ -203,7 +219,7 @@ export const CellCausalityInspector: React.FC<CellCausalityInspectorProps> = ({
                 <button
                   type="button"
                   onClick={() => onAssignTeam(team.callsign, report.cell_id)}
-                  className="px-2 py-1 rounded bg-white hover:bg-[#E1ECE8] text-[#0B6758] border border-[#E2E8E5] font-bold text-[10px] shrink-0 transition-colors"
+                  className="min-h-[44px] px-3.5 py-2 rounded-xl bg-[#0B6758] hover:bg-[#085446] text-white font-bold text-xs shrink-0 transition-colors cursor-pointer"
                 >
                   Task Here
                 </button>
@@ -214,25 +230,25 @@ export const CellCausalityInspector: React.FC<CellCausalityInspectorProps> = ({
       </div>
 
       {/* Equipment Viability Breakdown */}
-      <div className="space-y-2 border-t border-[#E2E8E5] pt-3">
-        <span className="text-xs font-bold uppercase tracking-wider text-[#1C2E2A] flex items-center gap-1.5">
-          <Wrench size={14} className="text-[#0B6758]" />
+      <div className="space-y-2.5 border-t border-[#CBD8D4] pt-3.5">
+        <span className="text-sm font-bold text-[#081820] flex items-center gap-1.5">
+          <Wrench size={16} className="text-[#0B6758]" />
           <span>Equipment Suitability</span>
         </span>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
           {report.equipment_assessments.map((eq) => (
             <div
               key={eq.equipment}
-              className="p-2 rounded-lg bg-[#F4F6F5] border border-[#E2E8E5] space-y-1"
+              className="p-3 rounded-xl bg-[#F6F9F7] border border-[#CBD8D4] space-y-1"
             >
-              <div className="flex items-center justify-between">
-                <span className="font-bold text-[11px] text-[#1C2E2A] truncate">
+              <div className="flex items-center justify-between gap-2">
+                <span className="font-bold text-xs text-[#081820] truncate">
                   {eq.equipment}
                 </span>
                 {getEquipmentStatusBadge(eq.status)}
               </div>
-              <p className="text-[10px] text-[#5A706A] leading-tight">
+              <p className="text-xs text-[#1E3831] leading-snug">
                 {eq.reason}
               </p>
             </div>
@@ -241,9 +257,9 @@ export const CellCausalityInspector: React.FC<CellCausalityInspectorProps> = ({
       </div>
 
       {/* Footer */}
-      <div className="flex items-center justify-end gap-2 pt-2 border-t border-[#E2E8E5]">
+      <div className="flex items-center justify-end gap-2 pt-2 border-t border-[#CBD8D4]">
         <SecondaryButton onClick={onClose}>
-          Close
+          Close Inspector
         </SecondaryButton>
       </div>
     </div>

@@ -1,0 +1,108 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="none">
+  <defs>
+    <!-- Inner Rounded Hexagon Clip Path -->
+    <clipPath id="innerHexClip">
+      <path d="M 232 45 Q 256 31 280 45 L 434 134 Q 458 148 458 176 L 458 336 Q 458 364 434 378 L 280 467 Q 256 481 232 467 L 78 378 Q 54 364 54 336 L 54 176 Q 54 148 78 134 Z" />
+    </clipPath>
+
+    <!-- Sky Gradient -->
+    <linearGradient id="skyGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#D2D7DC" />
+      <stop offset="65%" stop-color="#DFE3E6" />
+      <stop offset="100%" stop-color="#E7EAEC" />
+    </linearGradient>
+
+    <!-- Lake Water Gradient -->
+    <linearGradient id="lakeGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#D2D8DC" />
+      <stop offset="50%" stop-color="#CBD1D6" />
+      <stop offset="100%" stop-color="#C2C8CD" />
+    </linearGradient>
+  </defs>
+
+  <!-- Outer Rounded Hexagon Frame (Transparent exterior, crisp silver-slate border) -->
+  <path
+    d="M 228 24 Q 256 8 284 24 L 450 120 Q 478 136 478 168 L 478 344 Q 478 376 450 392 L 284 488 Q 256 504 228 488 L 62 392 Q 34 376 34 344 L 34 168 Q 34 136 62 120 Z"
+    fill="none"
+    stroke="#C4C9CE"
+    stroke-width="5.5"
+    stroke-linejoin="round"
+  />
+
+  <!-- Inner Clipped Mountain & Lake Scene -->
+  <g clip-path="url(#innerHexClip)">
+    <!-- Sky Fill -->
+    <rect x="40" y="25" width="432" height="335" fill="url(#skyGrad)" />
+
+    <!-- Distant Background Mountain Ridge (Center-Right) -->
+    <path
+      d="M 272 286 Q 294 272 315 278 L 342 292 Q 362 297 386 292 L 424 287 L 458 296 L 458 355 L 265 355 Z"
+      fill="#6F7478"
+    />
+
+    <!-- Midground Mountain Slope (Left-to-Center with Dual Tone Facet) -->
+    <!-- Lighter Slate Upper/Right Slope -->
+    <path
+      d="M 78 212 Q 108 194 130 202 L 166 218 Q 186 222 204 234 L 352 346 L 356 353 L 78 353 Z"
+      fill="#54595D"
+    />
+    <!-- Darker Slate Ridge Facet -->
+    <path
+      d="M 78 212 Q 106 195 128 202 L 218 274 L 346 352 L 320 352 L 164 244 L 78 198 Z"
+      fill="#3B4043"
+    />
+    <!-- Smooth Mid-left Shoulder Slope -->
+    <path
+      d="M 54 196 L 136 232 L 238 300 L 326 352 L 54 352 Z"
+      fill="#4D5256"
+    />
+
+    <!-- Right-hand Dark Mountain Slope -->
+    <path
+      d="M 347 344 L 458 268 L 458 356 L 347 352 Z"
+      fill="#32373A"
+    />
+
+    <!-- Foreground Dark Pine-Ridge Mountain Slope (Left) -->
+    <path
+      d="M 54 226 L 106 254 L 162 290 L 216 330 L 240 358 L 54 363 Z"
+      fill="#2F3437"
+    />
+
+    <!-- Pine Tree Silhouettes Along Foreground Left Ridge -->
+    <path
+      d="M 55 228 L 58 218 L 61 230 L 64 221 L 67 233 L 71 223 L 75 237 L 78 229 L 82 241 L 86 230 L 90 245 L 95 236 L 99 249 L 104 238 L 108 255 L 113 246 L 117 260 L 122 250 L 126 265 L 131 255 L 135 270 L 140 261 L 144 276 L 149 266 L 154 282 L 158 272 L 163 289 L 168 281 L 172 295 L 177 286 L 182 302 L 186 294 L 190 308 L 195 301 L 199 315 L 204 308 L 208 322 L 213 314 L 217 329 L 222 322 L 226 337 L 230 331 L 234 346 L 54 346 Z"
+      fill="#2F3437"
+    />
+
+    <!-- Subtle Dark Crag Texture Lines on Left Foreground Slope -->
+    <g stroke="#23272A" stroke-width="1.5" stroke-linecap="round" opacity="0.75">
+      <line x1="72" y1="264" x2="68" y2="286" />
+      <line x1="88" y1="276" x2="94" y2="298" />
+      <line x1="106" y1="285" x2="102" y2="312" />
+      <line x1="125" y1="296" x2="132" y2="320" />
+      <line x1="146" y1="310" x2="142" y2="334" />
+      <line x1="168" y1="322" x2="175" y2="342" />
+      <line x1="82" y1="316" x2="95" y2="338" />
+      <line x1="115" y1="325" x2="110" y2="346" />
+      <line x1="192" y1="332" x2="198" y2="348" />
+    </g>
+
+    <!-- Calm Lake / Loch Water Basin (Bottom Third) -->
+    <path
+      d="M 54 362 L 240 357 L 234 351 L 356 351 L 352 348 L 458 355 L 458 485 L 54 485 Z"
+      fill="url(#lakeGrad)"
+    />
+
+    <!-- Water Ripple Highlights -->
+    <g fill="#DDE2E6" opacity="0.75">
+      <ellipse cx="320" cy="364" rx="75" ry="2.2" />
+      <ellipse cx="265" cy="376" rx="115" ry="2.5" />
+      <ellipse cx="290" cy="390" rx="130" ry="2.5" />
+      <ellipse cx="245" cy="404" rx="125" ry="2.5" />
+      <ellipse cx="275" cy="418" rx="95" ry="2.2" />
+      <ellipse cx="230" cy="434" rx="85" ry="2" />
+      <ellipse cx="285" cy="448" rx="60" ry="1.8" />
+    </g>
+  </g>
+</svg>

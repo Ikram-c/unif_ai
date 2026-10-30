@@ -42,14 +42,21 @@ export const LandingPage: React.FC<LandingPageProps> = ({
   const [showAboutModal, setShowAboutModal] = useState(false);
 
   return (
-    <div className="flex-1 flex flex-col bg-[#F4F6F5] overflow-y-auto">
+    <div className="flex-1 min-h-0 flex flex-col bg-[#F4F7F5] overflow-y-auto hig-scroll-view">
       {/* Top Navigation Header for Landing Page */}
       <header className="sticky top-0 z-30 bg-[#1C2E2A] text-white border-b border-[#0B6758]/40 px-4 sm:px-8 py-3.5 flex items-center justify-between shadow-md">
         <div className="flex items-center gap-3">
-          <AberTechBrand />
+          <div className="flex items-center gap-2.5">
+            <img
+              src="/assets/aistudio/abertech_hex_logo.svg"
+              alt="AberTech Hexagonal Mountain & Lake Logo"
+              className="w-10 h-10 object-contain bg-transparent select-none shrink-0"
+            />
+            <span className="font-extrabold text-white text-base tracking-tight">AberTech</span>
+          </div>
           <div className="hidden sm:block h-5 w-px bg-white/20" />
           <span className="hidden sm:inline font-mono text-xs text-[#A4D0C8] font-medium">
-            Search & Rescue Autonomous Orchestration
+            Search &amp; Rescue Autonomous Orchestration
           </span>
         </div>
 
@@ -57,10 +64,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({
           <button
             type="button"
             onClick={() => setShowAboutModal(true)}
-            className="px-3 py-1.5 rounded-lg text-xs font-semibold text-[#A4D0C8] hover:text-white hover:bg-white/10 transition-colors flex items-center gap-1.5"
+            className="min-h-[40px] px-3 py-1.5 rounded-xl text-xs font-semibold text-[#A4D0C8] hover:text-white hover:bg-white/10 transition-colors flex items-center gap-1.5 cursor-pointer"
           >
             <Info size={14} />
-            <span>About Me & AberTech</span>
+            <span>About Me &amp; AberTech</span>
           </button>
 
           <PrimaryButton
@@ -74,9 +81,9 @@ export const LandingPage: React.FC<LandingPageProps> = ({
       </header>
 
       {/* Hero Section */}
-      <section className="relative bg-dither-dark text-[#E0F8D0] px-4 sm:px-8 py-12 sm:py-20 border-b-2 border-[#081820] overflow-hidden">
+      <section className="relative bg-dither-dark text-[#E0F8D0] px-4 sm:px-8 py-12 sm:py-20 border-b border-[#0B6758]/40 overflow-hidden">
         <div className="max-w-5xl mx-auto relative z-10 space-y-6 text-center sm:text-left">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded bg-[#081820] border border-[#88C070] text-[#FACC15] text-xs font-mono font-bold">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#081820] border border-[#88C070]/60 text-[#FACC15] text-xs font-mono font-bold">
             <span className="w-2 h-2 rounded-full bg-[#88C070] animate-ping" />
             <span>OPERATIONAL MVP · BANNAU BRYCHEINIOG DEMONSTRATION</span>
           </div>
@@ -86,7 +93,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             <span className="text-[#FACC15]">1 km²</span> targeted extractions within ten minutes.
           </h1>
 
-          <p className="text-sm sm:text-lg text-[#E0F8D0]/85 max-w-3xl leading-relaxed">
+          <p className="text-sm sm:text-lg text-[#E0F8D0]/90 max-w-3xl leading-relaxed">
             The mission orchestration platform engineered for Mountain Rescue and Austere Emergency Services.
             Uniting kinematic wander-radius probability contours, real-time terrain-weather causality modeling,
             live GPS position tracking, sub-second proximity geofencing, and automated 2 C.F.R. § 200 grant audit trails.
@@ -95,7 +102,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
           <div className="pt-2 flex flex-wrap items-center justify-center sm:justify-start gap-3">
             <PrimaryButton
               onClick={onLaunchOperation}
-              className="text-sm py-2.5 px-5 bg-[#FACC15] hover:bg-[#EAB308] text-[#081820] font-extrabold shadow-[3px_3px_0px_#081820]"
+              className="text-sm py-2.5 px-5 bg-[#FACC15] hover:bg-[#EAB308] text-[#081820] font-extrabold"
               icon={<Play size={16} />}
             >
               Launch Live Operational Portal (Step 07)
@@ -103,7 +110,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
 
             <SecondaryButton
               onClick={() => setShowAboutModal(true)}
-              className="text-sm py-2.5 px-4 bg-[#081820] hover:bg-[#1B4D3E] text-[#E0F8D0] border-[#88C070]"
+              className="text-sm py-2.5 px-4 bg-[#081820] hover:bg-[#1B4D3E] text-[#E0F8D0] border-[#88C070]/60"
               icon={<Info size={15} />}
             >
               Read &ldquo;About Me&rdquo; &amp; AberTech
@@ -112,7 +119,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             <button
               type="button"
               onClick={onStartNewMission}
-              className="text-xs font-semibold text-[#88C070] hover:underline px-3 py-2 flex items-center gap-1 cursor-pointer"
+              className="min-h-[44px] text-xs font-semibold text-[#88C070] hover:underline px-3 py-2 flex items-center gap-1 cursor-pointer"
             >
               <span>Or begin new incident setup (Step 01)</span>
               <ChevronRight size={14} />
@@ -121,21 +128,21 @@ export const LandingPage: React.FC<LandingPageProps> = ({
 
           {/* Quick Metrics Ribbon */}
           <div className="pt-8 grid grid-cols-2 sm:grid-cols-4 gap-3 text-left font-mono tabular-nums">
-            <div className="bg-[#081820] border border-[#88C070] rounded-lg p-3 shadow-[3px_3px_0px_#081820]">
+            <div className="bg-[#081820] border border-[#88C070]/50 rounded-xl p-3.5">
               <div className="text-xl sm:text-2xl font-black text-[#88C070]">10 MIN</div>
-              <div className="text-xs text-[#E0F8D0]/80 mt-0.5 font-sans">Time to 1 km² convergence</div>
+              <div className="text-xs text-[#E0F8D0]/85 mt-0.5 font-sans">Time to 1 km² convergence</div>
             </div>
-            <div className="bg-[#081820] border border-[#88C070] rounded-lg p-3 shadow-[3px_3px_0px_#081820]">
+            <div className="bg-[#081820] border border-[#88C070]/50 rounded-xl p-3.5">
               <div className="text-xl sm:text-2xl font-black text-white">&lt;$5 / HR</div>
-              <div className="text-xs text-[#E0F8D0]/80 mt-0.5 font-sans">Variable compute vs $10k/hr helo</div>
+              <div className="text-xs text-[#E0F8D0]/85 mt-0.5 font-sans">Variable compute vs $10k/hr helo</div>
             </div>
-            <div className="bg-[#FACC15] border border-[#081820] rounded-lg p-3 shadow-[3px_3px_0px_#081820] text-[#081820]">
+            <div className="bg-[#FACC15] border border-[#CA8A04] rounded-xl p-3.5 text-[#081820]">
               <div className="text-xl sm:text-2xl font-black">70.4%</div>
               <div className="text-xs font-bold mt-0.5 font-sans">Demand error eliminated</div>
             </div>
-            <div className="bg-[#081820] border border-[#88C070] rounded-lg p-3 shadow-[3px_3px_0px_#081820]">
+            <div className="bg-[#081820] border border-[#88C070]/50 rounded-xl p-3.5">
               <div className="text-xl sm:text-2xl font-black text-[#8ED0FF]">ZERO CLOUD</div>
-              <div className="text-xs text-[#E0F8D0]/80 mt-0.5 font-sans">Offline edge on legacy laptops</div>
+              <div className="text-xs text-[#E0F8D0]/85 mt-0.5 font-sans">Offline edge on legacy laptops</div>
             </div>
           </div>
         </div>
@@ -338,9 +345,11 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             {/* Modal Header */}
             <div className="bg-[#1C2E2A] text-white p-5 rounded-t-2xl flex items-center justify-between border-b border-[#0B6758]/40">
               <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-lg bg-[#0B6758] flex items-center justify-center text-white">
-                  <Mountain size={18} />
-                </div>
+                <img
+                  src="/assets/aistudio/abertech_hex_logo.svg"
+                  alt="AberTech Hexagonal Mountain & Lake Logo"
+                  className="w-9 h-9 object-contain bg-transparent select-none shrink-0"
+                />
                 <div>
                   <h3 className="font-bold text-base text-white">About Me & AberTech</h3>
                   <p className="text-xs text-[#A4D0C8]">The Founder, Mission, and Problems Solved</p>

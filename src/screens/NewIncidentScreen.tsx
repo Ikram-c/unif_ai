@@ -43,10 +43,10 @@ export const NewIncidentScreen: React.FC<NewIncidentScreenProps> = ({
   };
 
   return (
-    <div className="flex-1 flex flex-col bg-[#F4F6F5] overflow-y-auto">
+    <div className="flex-1 min-h-0 flex flex-col bg-[#F4F7F5] overflow-y-auto hig-scroll-view">
       <StepHeader stepNumber="02 / 09" stepTitle="SETUP 1 OF 3" missionRef={missionRef} />
 
-      <form onSubmit={handleSubmit} className="p-4 sm:p-6 max-w-2xl mx-auto w-full space-y-6">
+      <form onSubmit={handleSubmit} className="p-4 sm:p-6 pb-8 max-w-2xl mx-auto w-full space-y-6">
         <div>
           <h1 className="text-xl sm:text-2xl font-black text-[#1C2E2A] tracking-tight">
             New incident setup

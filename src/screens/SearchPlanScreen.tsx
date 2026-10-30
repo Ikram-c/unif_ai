@@ -1,22 +1,32 @@
-import React, { useState } from 'react';
-import { Compass, ArrowLeft, ArrowRight, Layers, MapPin, Clock, Edit2 } from 'lucide-react';
-import { Card, PlanningEstimateNotice, PrimaryButton, SecondaryButton, StepHeader } from '../components/Common';
+import React, { useEffect, useState } from 'react';
+import { Compass, ArrowRight, Edit2, CloudDownload, Play } from 'lucide-react';
+import {
+  AreaPrecacheBanner,
+  Card,
+  PlanningEstimateNotice,
+  PrimaryButton,
+  SecondaryButton,
+  StepHeader,
+} from '../components/Common';
 import { OsmMap } from '../components/OsmMap';
 import { MapOverlayControls } from '../components/MapOverlayControls';
 import { CellCausalityInspector } from '../components/CellCausalityInspector';
 import { CellCausalityReport, MapLayerToggles, Rescue, SearchCell } from '../types';
 import { WEATHER_PRESETS } from '../core/CausalityModel';
+import { areaPrecacheService } from '../core/AreaPrecacheService';
 
 interface SearchPlanScreenProps {
   rescue: Rescue;
   onRevise: () => void;
   onProceedToReview: () => void;
+  onLaunchActiveOperation?: () => void;
 }
 
 export const SearchPlanScreen: React.FC<SearchPlanScreenProps> = ({
   rescue,
   onRevise,
   onProceedToReview,
+  onLaunchActiveOperation,
 }) => {
   const plan = rescue.plan;
   const rings = plan?.rings || [
@@ -39,6 +49,13 @@ export const SearchPlanScreen: React.FC<SearchPlanScreenProps> = ({
   const [selectedCell, setSelectedCell] = useState<SearchCell | null>(null);
   const [selectedReport, setSelectedReport] = useState<CellCausalityReport | null>(null);
 
+  // Warm up background pre-cache when Search Plan is inspected
+  useEffect(() => {
+    areaPrecacheService.triggerAreaPrecache(rescue, {
+      triggeredFrom: 'Step 05 Search Plan Inspection',
+    });
+  }, [rescue]);
+
   const handleToggleLayer = (key: keyof MapLayerToggles) => {
     setLayerToggles((prev) => ({
       ...prev,
@@ -51,31 +68,60 @@ export const SearchPlanScreen: React.FC<SearchPlanScreenProps> = ({
     setSelectedReport(report);
   };
 
+  const handleTransitionWithPrecache = (destination: 'REVIEW' | 'ACTIVE_OP') => {
+    areaPrecacheService.triggerAreaPrecache(rescue, {
+      triggeredFrom:
+        destination === 'ACTIVE_OP'
+          ? 'Search Plan → Active Operation Transition'
+          : 'Search Plan → Resource Confirmation Transition',
+      force: true,
+    });
+    if (destination === 'ACTIVE_OP' && onLaunchActiveOperation) {
+      onLaunchActiveOperation();
+    } else {
+      onProceedToReview();
+    }
+  };
+
   return (
-    <div className="flex-1 flex flex-col bg-[#F4F6F5] overflow-y-auto">
+    <div className="flex-1 min-h-0 flex flex-col bg-[#F4F7F5] overflow-y-auto hig-scroll-view">
       <StepHeader
         stepNumber="05 / 09"
         stepTitle="ESTIMATED AREA"
         missionRef={rescue.mission_reference}
       />
 
-      <div className="p-4 sm:p-6 max-w-6xl mx-auto w-full space-y-4">
+      <div className="p-4 sm:p-6 pb-8 max-w-6xl mx-auto w-full space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
           <div>
             <h1 className="text-xl sm:text-2xl font-black text-[#1C2E2A] tracking-tight">
-              Search area estimation & terrain viability
+              Search area estimation &amp; terrain viability
             </h1>
             <p className="text-xs text-[#5A706A] mt-0.5">
-              Kinematic probability contours (50%, 75%, 95%) anchored at {rescue.location_label} with hexagonal causality overlay
+              Kinematic probability contours (50%, 75%, 95%) anchored at {rescue.location_label}{' '}
+              with hexagonal causality overlay
             </p>
           </div>
-          <SecondaryButton onClick={onRevise} icon={<Edit2 size={15} />}>
-            Revise inputs
-          </SecondaryButton>
+          <div className="flex flex-wrap items-center gap-2">
+            <SecondaryButton onClick={onRevise} icon={<Edit2 size={15} />}>
+              Revise inputs
+            </SecondaryButton>
+            {onLaunchActiveOperation && (
+              <PrimaryButton
+                onClick={() => handleTransitionWithPrecache('ACTIVE_OP')}
+                icon={<Play size={15} />}
+              >
+                Launch Active Operation
+              </PrimaryButton>
+            )}
+          </div>
         </div>
 
         {/* Mandatory Warning Notice */}
         <PlanningEstimateNotice />
+
+        {/* Background Area Pre-Cache Status Banner */}
+        <AreaPrecacheBanner rescue={rescue} />
 
         {/* Overlay Controls */}
         <MapOverlayControls
@@ -91,10 +137,10 @@ export const SearchPlanScreen: React.FC<SearchPlanScreenProps> = ({
               <div className="flex items-center justify-between mb-2 px-1">
                 <span className="text-xs font-bold uppercase tracking-wider text-[#1C2E2A] flex items-center gap-1.5">
                   <Compass size={14} className="text-[#0B6758]" />
-                  <span>Kinematic Wander Contours & Hexagonal Sectors</span>
+                  <span>Kinematic Wander Contours &amp; Hexagonal Sectors</span>
                 </span>
                 <span className="text-[11px] font-mono text-[#5A706A]">
-                  Click hex to inspect terrain & team feasibility
+                  Click hex to inspect terrain &amp; team feasibility
                 </span>
               </div>
               <div className="flex-1 min-h-[380px]">
@@ -138,7 +184,8 @@ export const SearchPlanScreen: React.FC<SearchPlanScreenProps> = ({
                   <div className="flex items-start justify-between">
                     <span className="text-[#5A706A]">Anchor (LKP):</span>
                     <span className="font-semibold text-[#1C2E2A] text-right font-mono">
-                      {rescue.last_known_location.lat.toFixed(4)}° N, {Math.abs(rescue.last_known_location.lon).toFixed(4)}° W
+                      {rescue.last_known_location.lat.toFixed(4)}° N,{' '}
+                      {Math.abs(rescue.last_known_location.lon).toFixed(4)}° W
                     </span>
                   </div>
                   <div className="flex items-start justify-between">
@@ -149,17 +196,24 @@ export const SearchPlanScreen: React.FC<SearchPlanScreenProps> = ({
                   </div>
                   <div className="flex items-start justify-between">
                     <span className="text-[#5A706A]">Velocity Priors:</span>
-                    <span className="font-semibold text-[#1C2E2A] font-mono">d50 = 3 km, τ = 6.0h</span>
+                    <span className="font-semibold text-[#1C2E2A] font-mono">
+                      d50 = 3 km, τ = 6.0h
+                    </span>
                   </div>
                   <div className="flex items-start justify-between">
                     <span className="text-[#5A706A]">Elapsed Window:</span>
                     <span className="font-semibold text-[#0B6758] font-mono">
-                      {plan?.window.elapsed_minutes ? Math.round(plan.window.elapsed_minutes / 60) : 3}h (to 12:30 UTC)
+                      {plan?.window.elapsed_minutes
+                        ? Math.round(plan.window.elapsed_minutes / 60)
+                        : 3}
+                      h (to 12:30 UTC)
                     </span>
                   </div>
                   <div className="flex items-start justify-between">
                     <span className="text-[#5A706A]">Terrain Decay:</span>
-                    <span className="font-semibold text-[#1C2E2A]">{rescue.terrain_type || 'Moorland paths'}</span>
+                    <span className="font-semibold text-[#1C2E2A]">
+                      {rescue.terrain_type || 'Moorland paths'}
+                    </span>
                   </div>
                 </div>
 
@@ -193,16 +247,24 @@ export const SearchPlanScreen: React.FC<SearchPlanScreenProps> = ({
                     </div>
                   </div>
                 </div>
+
+                <div className="pt-2 border-t border-[#E2E8E5] text-xs text-[#485865] flex items-start gap-2">
+                  <CloudDownload size={15} className="text-[#536878] shrink-0 mt-0.5" />
+                  <span>
+                    Proceeding to Active Operation automatically pre-caches Z11–Z14 map tiles and
+                    localized sector weather envelopes in the background.
+                  </span>
+                </div>
               </Card>
             )}
 
-            <div className="pt-1">
+            <div className="pt-1 space-y-2">
               <PrimaryButton
-                onClick={onProceedToReview}
+                onClick={() => handleTransitionWithPrecache('REVIEW')}
                 className="w-full py-3"
                 icon={<ArrowRight size={16} />}
               >
-                Review assumptions & resources
+                Review assumptions &amp; resources
               </PrimaryButton>
             </div>
           </div>

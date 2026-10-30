@@ -236,7 +236,13 @@ export const OsmMap: React.FC<OsmMapProps> = ({
       }
     }
 
+    const resizeObserver = new ResizeObserver(() => {
+      mapInstanceRef.current?.invalidateSize();
+    });
+    resizeObserver.observe(mapContainerRef.current);
+
     return () => {
+      resizeObserver.disconnect();
       if (mapInstanceRef.current) {
         mapInstanceRef.current.remove();
         mapInstanceRef.current = null;
@@ -732,21 +738,23 @@ export const OsmMap: React.FC<OsmMapProps> = ({
     <div className={`relative ${className} overflow-hidden rounded-xl border border-[#E2E8E5] bg-[#F4F6F5]`}>
       <div ref={mapContainerRef} className="w-full h-full min-h-[300px]" />
 
-      {/* Map Zoom Controls */}
-      <div className="absolute right-3 top-3 z-[400] flex flex-col bg-white border border-[#E2E8E5] rounded-lg shadow-sm overflow-hidden">
+      {/* Map Zoom Controls (Apple HIG >= 44x44pt touch targets) */}
+      <div className="absolute right-3 top-3 z-[400] flex flex-col bg-white border border-[#DCE5E1] rounded-xl shadow-sm overflow-hidden">
         <button
           type="button"
           onClick={handleZoomIn}
-          className="w-8 h-8 flex items-center justify-center text-[#1C2E2A] hover:bg-[#F4F6F5] font-bold text-base transition-colors border-b border-[#E2E8E5]"
+          className="w-11 h-11 flex items-center justify-center text-[#1C2E2A] hover:bg-[#F4F7F5] font-bold text-lg transition-colors border-b border-[#DCE5E1] cursor-pointer"
           title="Zoom in"
+          aria-label="Zoom in"
         >
           +
         </button>
         <button
           type="button"
           onClick={handleZoomOut}
-          className="w-8 h-8 flex items-center justify-center text-[#1C2E2A] hover:bg-[#F4F6F5] font-bold text-base transition-colors"
+          className="w-11 h-11 flex items-center justify-center text-[#1C2E2A] hover:bg-[#F4F7F5] font-bold text-lg transition-colors cursor-pointer"
           title="Zoom out"
+          aria-label="Zoom out"
         >
           –
         </button>

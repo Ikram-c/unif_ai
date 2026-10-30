@@ -1,81 +1,82 @@
 @import "tailwindcss";
 
 :root {
-  --color-ink: #081820;
-  --color-forest-deep: #0D1F1A;
-  --color-forest-mid: #1B4D3E;
-  --color-phosphor: #88C070;
-  --color-phosphor-light: #E0F8D0;
+  /* Core Palette from IMG_7788 & AberTech Design System */
+  --color-alabaster: #E5E4E2;
+  --color-alabaster-light: #F2F1EF;
+  --color-onyx: #0A0A0A;
+  --color-onyx-elevated: #12161A;
+  --color-blue-slate: #536878;
+  --color-blue-slate-dark: #3B4C59;
+  --color-blue-slate-tint: #DCE3E8;
+  --color-coral-editorial: #E5A996;
+
+  /* Semantic & Legacy Tokens */
+  --color-ink: #0A0A0A;
+  --color-forest-deep: #0A0A0A;
+  --color-forest-mid: #536878;
+  --color-phosphor: #86EFAC;
+  --color-phosphor-light: #E5E4E2;
   --color-signal-yellow: #FACC15;
   --color-amber: #D97706;
-  --color-danger: #DC2626;
-  --separator: #CBD8D4;
-  --surface-canvas: #EDF2EF;
-  --surface-card: #FFFFFF;
-  --text-primary: #081820;
-  --text-secondary: #1E3831;
-  font-size: 17px; /* Apple HIG Typography baseline: Size >= 17pt */
+  --color-danger: #E11D48;
+  --separator: #CFCBC4;
+  --surface-canvas: #E5E4E2;
+  --surface-card: #F5F4F2;
+  --text-primary: #0A0A0A;
+  --text-secondary: #485865;
+  font-size: 16px;
 }
 
 /* ==========================================================================
    APPLE HIG DYNAMIC TYPE & FOUL-WEATHER SCALING ENGINE
-   Supports fluid scaling (Size >= 17pt) while retaining visual hierarchy
+   Supports fluid scaling while preserving mobile layout integrity
    ========================================================================== */
-html[data-ui-scale="standard"] {
+html[data-ui-scale="standard"],
+html:not([data-ui-scale]) {
+  font-size: 16px;
+}
+
+html[data-ui-scale="weather-lg"] {
   font-size: 17px;
 }
 
-html[data-ui-scale="weather-lg"],
-html:not([data-ui-scale]) {
+html[data-ui-scale="storm-xl"] {
   font-size: 18px;
 }
 
-html[data-ui-scale="storm-xl"] {
-  font-size: 19.5px;
+/* ==========================================================================
+   TYPOGRAPHY SYSTEM (2+1 Font Rule: Fraunces + Plus Jakarta Sans + JetBrains Mono)
+   ========================================================================== */
+.font-serif-editorial {
+  font-family: 'Fraunces', Georgia, Cambria, 'Times New Roman', Times, serif;
 }
 
-/* Floor micro-typography classes so all labels maintain high legibility & >= 4.5:1 contrast */
-.text-\[8px\],
-.text-\[9px\],
-.text-\[10px\] {
-  font-size: 0.76rem !important;
-  line-height: 1.38 !important;
-  font-weight: 600 !important;
-  letter-spacing: 0.01em;
+.font-sans {
+  font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
 }
 
-.text-\[11px\] {
-  font-size: 0.82rem !important;
-  line-height: 1.42 !important;
-  font-weight: 600 !important;
-}
-
-.text-xs {
-  font-size: 0.88rem !important;
-  line-height: 1.45 !important;
-}
-
-.text-sm {
-  font-size: 0.96rem !important;
-  line-height: 1.5 !important;
+.font-mono,
+.tabular-nums {
+  font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-variant-numeric: tabular-nums;
 }
 
 /* ==========================================================================
    APPLE HIG CORE ACCESSIBILITY & INTERACTION RULES
-   - Typography: font: -apple-system, BlinkMacSystemFont, 'Plus Jakarta Sans', sans-serif
-   - Color & Contrast: CR >= 4.5:1, color: CanvasText
-   - Buttons: Area >= 44x44pt (min-height: 44px; min-width: 44px)
-   - Text Fields: Height >= 44pt (min-height: 44px; font-size: 17px; appearance: none)
-   - Scroll Views: overscroll-behavior: contain
-   - Gestures: touch-action: pan-y pinch-zoom
    ========================================================================== */
-body {
+html,
+body,
+#root {
+  height: 100%;
   margin: 0;
   padding: 0;
+}
+
+body {
   background-color: var(--surface-canvas);
-  color: CanvasText;
   color: var(--text-primary);
-  font-family: -apple-system, BlinkMacSystemFont, 'Plus Jakarta Sans', sans-serif;
+  font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
   font-size: 1rem;
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
@@ -89,17 +90,18 @@ main,
 .overflow-x-auto,
 .hig-scroll-view {
   overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
 }
 
 /* Apple HIG Safe Areas (Margin >= 16pt, bottom home indicator inset) */
 .hig-safe-area {
-  padding-bottom: max(1rem, env(safe-area-inset-bottom));
+  padding-bottom: max(1.5rem, env(safe-area-inset-bottom));
   padding-left: max(1rem, env(safe-area-inset-left));
   padding-right: max(1rem, env(safe-area-inset-right));
 }
 
 .hig-tab-bar {
-  min-height: 49px;
+  min-height: 56px;
   padding-bottom: env(safe-area-inset-bottom);
 }
 
@@ -108,7 +110,7 @@ main,
   border-radius: 22.5%;
 }
 
-/* Apple HIG Text Fields: Height >= 44pt, font-size: 17px, appearance: none */
+/* Apple HIG Text Fields: Height >= 44pt, font-size >= 16px, appearance: none */
 input[type="text"],
 input[type="search"],
 input[type="date"],
@@ -118,15 +120,14 @@ input[type="url"],
 select,
 textarea {
   min-height: 44px;
-  font-size: 17px !important;
+  font-size: max(16px, 0.95rem);
   line-height: 1.4;
   appearance: none;
   -webkit-appearance: none;
 }
 
-/* Add clean custom chevron indicator for appearance:none select inputs */
 select {
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23081820' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%230A0A0A' stroke-width='2.25' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: right 0.75rem center;
   background-size: 16px 16px;
@@ -147,27 +148,130 @@ button:focus-visible,
 select:focus-visible,
 input:focus-visible,
 textarea:focus-visible {
-  outline: 3px solid #0B6758 !important;
+  outline: 2.5px solid #536878 !important;
   outline-offset: 2px !important;
 }
 
 /* ==========================================================================
-   WET SCREEN & WINTER GLOVE TACTILE MODE (data-glove-mode="true")
-   Enforces >= 44x44px touch targets across all interactive controls
+   ABERTECH SIGNATURE VISUAL SURFACES (IMG_7788, IMG_9083, IMG_7717, IMG_7700)
    ========================================================================== */
-html[data-glove-mode="true"] button {
-  min-height: 44px;
+
+/* Subtle Film Grain Texture from IMG_9083 */
+.abertech-grain {
+  background-image: radial-gradient(rgba(229, 228, 226, 0.07) 1px, transparent 0);
+  background-size: 12px 12px;
 }
 
+/* Onyx + Blue Slate Card with Mountain Horizon Option (IMG_7717) */
+.onyx-card {
+  background-color: #0A0A0A;
+  color: #E5E4E2;
+  border: 1px solid rgba(83, 104, 120, 0.45);
+  box-shadow: 0 8px 24px rgba(10, 10, 10, 0.22);
+}
+
+/* Underground Glow Spec Box (IMG_7700) */
+.spec-glow-box {
+  background-color: #0A0A0A;
+  color: #E5E4E2;
+  border: 1px solid rgba(229, 228, 226, 0.22);
+}
+
+/* Harmonize legacy green/mint surface utility classes with Alabaster Grey (#E5E4E2), Onyx (#0A0A0A), & Blue Slate (#536878) */
+.bg-\[\#F4F7F5\],
+.bg-\[\#EDF1EE\],
+.bg-\[\#F4F6F5\],
+.bg-\[\#F6F9F7\] {
+  background-color: #E5E4E2 !important;
+}
+
+.bg-\[\#E1ECE8\],
+.bg-\[\#EDF2EF\] {
+  background-color: #D7DFE5 !important;
+}
+
+.text-\[\#0B6758\],
+.text-\[\#064E3B\] {
+  color: #3B4F5E !important;
+}
+
+.bg-\[\#0B6758\] {
+  background-color: #536878 !important;
+}
+.hover\:bg-\[\#085446\]:hover,
+.hover\:bg-\[\#07483D\]:hover {
+  background-color: #3D4E5B !important;
+}
+
+.text-\[\#1C2E2A\],
+.text-\[\#081820\],
+.text-\[\#0D1F1A\] {
+  color: #0A0A0A !important;
+}
+
+.text-\[\#5A706A\],
+.text-\[\#4A635D\],
+.text-\[\#1E3831\] {
+  color: #465866 !important;
+}
+
+.border-\[\#DCE5E1\],
+.border-\[\#E2E8E5\],
+.border-\[\#CBD8D4\],
+.border-\[\#B8C9C3\],
+.border-\[\#A7C7BE\] {
+  border-color: #C7C6C1 !important;
+}
+
+/* Subtle Tactical Surface Patterns */
+.bg-dither-green {
+  background-color: #0A0A0A;
+  background-image: radial-gradient(rgba(83, 104, 120, 0.35) 1px, transparent 1px);
+  background-size: 8px 8px;
+}
+
+.bg-dither-light {
+  background-color: #E5E4E2;
+}
+
+.bg-dither-dark {
+  background-color: #0A0A0A;
+  background-image: radial-gradient(rgba(229, 228, 226, 0.08) 1px, transparent 1px);
+  background-size: 14px 14px;
+}
+
+/* Clean, Accessible Card Surfaces (Alabaster Light Card on Alabaster Grey Canvas) */
+.tactical-card {
+  background-color: #F4F3F1;
+  border: 1px solid #C8C6C0;
+  box-shadow: 0 1px 3px rgba(10, 10, 10, 0.05);
+}
+
+.tactical-card-sm {
+  background-color: #F4F3F1;
+  border: 1px solid #D0CECA;
+  box-shadow: 0 1px 2px rgba(10, 10, 10, 0.04);
+}
+
+.tactical-card-yellow {
+  background-color: #FEF9C3;
+  color: #0A0A0A;
+  border: 1.5px solid #CA8A04;
+  box-shadow: 0 2px 4px rgba(10, 10, 10, 0.06);
+}
+
+/* ==========================================================================
+   WET SCREEN & WINTER GLOVE TACTILE MODE (data-glove-mode="true")
+   ========================================================================== */
 html[data-glove-mode="true"] input[type="checkbox"],
 html[data-glove-mode="true"] input[type="radio"] {
-  width: 1.35rem !important;
-  height: 1.35rem !important;
+  width: 1.25rem !important;
+  height: 1.25rem !important;
   cursor: pointer;
 }
 
 html[data-glove-mode="true"] input[type="range"] {
-  height: 0.65rem !important;
+  height: 0.55rem !important;
   border-radius: 999px;
   cursor: pointer;
 }
@@ -175,149 +279,94 @@ html[data-glove-mode="true"] input[type="range"] {
 /* ==========================================================================
    POOR LIGHT HIGH-CONTRAST & NIGHT VISION LIGHTING MODES (CR >= 4.5:1)
    ========================================================================== */
-.text-\[\#5A706A\],
-.text-\[\#7D918B\] {
-  color: #1E3831 !important; /* Upgraded from muted gray to >7:1 contrast on white */
-}
-
 html[data-lighting="poor-light-hivis"] .tactical-card {
-  border: 1.5px solid #081820 !important;
-  box-shadow: 0 2px 6px rgba(8, 24, 32, 0.08) !important;
+  background-color: #FFFFFF !important;
+  border: 1.5px solid #0A0A0A !important;
+  box-shadow: 0 2px 6px rgba(10, 10, 10, 0.1) !important;
 }
 
 html[data-lighting="poor-light-hivis"] .tactical-card-sm {
-  border: 1.5px solid #1E3831 !important;
-  box-shadow: 0 1px 3px rgba(8, 24, 32, 0.06) !important;
+  background-color: #FFFFFF !important;
+  border: 1.5px solid #536878 !important;
 }
 
-/* Night-Vision Phosphor / Dark Mode (CR >= 4.5:1 across dark surfaces) */
+/* Night-Vision Onyx / Dither Mode (CR >= 4.5:1 across dark surfaces) */
 html[data-lighting="night-vision"] body {
-  background-color: #071318 !important;
-  color: #E0F8D0 !important;
+  background-color: #0A0A0A !important;
+  color: #E5E4E2 !important;
 }
 
 html[data-lighting="night-vision"] .bg-\[\#EDF1EE\],
 html[data-lighting="night-vision"] .bg-\[\#EDF2EF\],
+html[data-lighting="night-vision"] .bg-\[\#F4F7F5\],
 html[data-lighting="night-vision"] .bg-\[\#E4EBE7\],
-html[data-lighting="night-vision"] .bg-\[\#F4F6F5\] {
-  background-color: #0B1B22 !important;
-  color: #E0F8D0 !important;
+html[data-lighting="night-vision"] .bg-\[\#F4F6F5\],
+html[data-lighting="night-vision"] .bg-\[\#F6F9F7\],
+html[data-lighting="night-vision"] .bg-\[\#E5E4E2\] {
+  background-color: #0A0A0A !important;
+  color: #E5E4E2 !important;
 }
 
-html[data-lighting="night-vision"] .bg-white {
-  background-color: #10242D !important;
-  color: #E0F8D0 !important;
+html[data-lighting="night-vision"] .bg-white,
+html[data-lighting="night-vision"] .tactical-card,
+html[data-lighting="night-vision"] .tactical-card-sm {
+  background-color: #12161B !important;
+  color: #E5E4E2 !important;
+  border-color: #536878 !important;
 }
 
 html[data-lighting="night-vision"] .text-\[\#0D1F1A\],
 html[data-lighting="night-vision"] .text-\[\#081820\],
-html[data-lighting="night-vision"] .text-\[\#1C2E2A\] {
-  color: #E0F8D0 !important;
+html[data-lighting="night-vision"] .text-\[\#1C2E2A\],
+html[data-lighting="night-vision"] .text-\[\#0A0A0A\] {
+  color: #E5E4E2 !important;
 }
 
 html[data-lighting="night-vision"] .text-\[\#5A706A\],
+html[data-lighting="night-vision"] .text-\[\#4A635D\],
 html[data-lighting="night-vision"] .text-\[\#1B362F\],
 html[data-lighting="night-vision"] .text-\[\#1E3831\] {
-  color: #A3D98D !important;
-}
-
-html[data-lighting="night-vision"] .border-\[\#E2E8E5\],
-html[data-lighting="night-vision"] .border-\[\#CBD8D4\] {
-  border-color: #1F4E40 !important;
-}
-
-html[data-lighting="night-vision"] .tactical-card,
-html[data-lighting="night-vision"] .tactical-card-sm {
-  border: 1.5px solid #2D6A56 !important;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.45) !important;
-}
-
-.font-mono,
-.tabular-nums {
-  font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-  font-variant-numeric: tabular-nums;
-}
-
-/* Subtle Tactical Surface Patterns */
-.bg-dither-green {
-  background-color: #081820;
-  background-image: radial-gradient(rgba(136, 192, 112, 0.25) 1px, transparent 1px);
-  background-size: 8px 8px;
-}
-
-.bg-dither-light {
-  background-color: #E0F8D0;
-}
-
-.bg-dither-dark {
-  background-color: #0B1D24;
-}
-
-/* Clean, Accessible Card Surfaces (Single-Elevation Depth, No Harsh Shadow Clutter) */
-.tactical-card {
-  background-color: #FFFFFF;
-  border: 1.5px solid #B8C9C3;
-  box-shadow: 0 1px 3px rgba(8, 24, 32, 0.06);
-}
-
-.tactical-card-sm {
-  background-color: #FFFFFF;
-  border: 1.5px solid #CBD8D4;
-  box-shadow: 0 1px 2px rgba(8, 24, 32, 0.04);
-}
-
-.tactical-card-yellow {
-  background-color: #FEF9C3;
-  color: #081820;
-  border: 2px solid #CA8A04;
-  box-shadow: 0 2px 4px rgba(8, 24, 32, 0.08);
+  color: #9FB2C0 !important;
 }
 
 /* Custom high-visibility scrollbars */
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 6px;
+  height: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: #E2EBE7;
+  background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: #0B6758;
+  background: #9AA7B2;
   border-radius: 999px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #081820;
+  background: #536878;
 }
 
 /* Leaflet tactical theme & Apple HIG >= 44x44pt zoom controls */
 .leaflet-container {
-  background-color: #142320 !important;
-  font-family: -apple-system, BlinkMacSystemFont, 'Plus Jakarta Sans', sans-serif;
+  background-color: #DDE2E6 !important;
+  font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
   touch-action: pan-y pinch-zoom;
 }
 .leaflet-popup-content-wrapper {
-  background: #081820 !important;
-  color: #E0F8D0 !important;
+  background: #0A0A0A !important;
+  color: #E5E4E2 !important;
   border-radius: 12px !important;
-  border: 1.5px solid #88C070;
-  font-size: 0.95rem !important;
+  border: 1.5px solid #536878;
+  font-size: 0.9rem !important;
 }
 .leaflet-popup-tip {
-  background: #081820 !important;
+  background: #0A0A0A !important;
 }
 .leaflet-control-zoom a {
   width: 44px !important;
   height: 44px !important;
   line-height: 42px !important;
-  font-size: 22px !important;
+  font-size: 20px !important;
   font-weight: 700 !important;
-  background-color: #081820 !important;
-  color: #FACC15 !important;
-  border: 1.5px solid #88C070 !important;
-}
-.leaflet-control-zoom a:hover {
-  background-color: #1B4D3E !important;
-  color: #FFFFFF !important;
 }
 
 @keyframes radar-sweep {
@@ -335,12 +384,12 @@ html[data-lighting="night-vision"] .tactical-card-sm {
 
 @keyframes battery-critical-pulse {
   0%, 100% {
-    border-color: #DC2626;
-    box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.55);
+    border-color: #E11D48;
+    box-shadow: 0 0 0 0 rgba(225, 29, 72, 0.55);
   }
   50% {
-    border-color: #B91C1C;
-    box-shadow: 0 0 0 6px rgba(220, 38, 38, 0);
+    border-color: #9F1239;
+    box-shadow: 0 0 0 6px rgba(225, 29, 72, 0);
   }
 }
 

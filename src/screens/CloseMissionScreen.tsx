@@ -108,14 +108,14 @@ export const CloseMissionScreen: React.FC<CloseMissionScreenProps> = ({
   ];
 
   return (
-    <div className="flex-1 flex flex-col bg-[#EDF2EF] overflow-y-auto hig-scroll-view">
+    <div className="flex-1 min-h-0 flex flex-col bg-[#F4F7F5] overflow-y-auto hig-scroll-view">
       <StepHeader
         stepNumber="09 / 09"
-        stepTitle="Completed Record & Audit"
+        stepTitle="COMPLETED RECORD & AUDIT"
         missionRef={rescue.mission_reference}
       />
 
-      <div className="p-4 sm:p-6 hig-safe-area max-w-5xl mx-auto w-full space-y-5">
+      <div className="p-4 sm:p-6 pb-8 hig-safe-area max-w-5xl mx-auto w-full space-y-5">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>
             <div className="flex items-center gap-2.5">

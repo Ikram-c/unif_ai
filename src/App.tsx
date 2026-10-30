@@ -15,6 +15,7 @@ import {
   ActivityRing,
   DualStatusHeader,
   MobileBottomNav,
+  MountainHorizonCard,
   PrimaryButton,
   SecondaryButton,
 } from './components/Common';
@@ -32,12 +33,13 @@ import { SettingsScreen } from './screens/SettingsScreen';
 import { GeoPosition, MissionClosure, Rescue, SubjectProfile, TravelMode } from './types';
 import { rescueRepository } from './data/RescueRepository';
 import { settingsStore } from './data/SettingsStore';
+import { areaPrecacheService } from './core/AreaPrecacheService';
 import { TimeFormat } from './core/TimeFormat';
 
 export const App: React.FC = () => {
   const [rescues, setRescues] = useState<Rescue[]>(rescueRepository.allRescues);
   const [selectedRescueId, setSelectedRescueId] = useState<string>('SAR-026');
-  const [currentStep, setCurrentStep] = useState<number>(7); // Default to 07 Active Operation (Live Position Tracking & Team Status)
+  const [currentStep, setCurrentStep] = useState<number>(1); // Default to 01 / 09 Field Workspace (with 1-tap access to 07 Active Operation)
   const [isLandingPage, setIsLandingPage] = useState<boolean>(false);
   const [showSettings, setShowSettings] = useState<boolean>(false);
   const [showLogObservationModal, setShowLogObservationModal] = useState<boolean>(false);
@@ -250,13 +252,16 @@ export const App: React.FC = () => {
         ...(currentRescue.audit_events || []),
         {
           time_utc: timeStr,
-          title: 'Commander confirmed allocations',
-          details: `${currentRescue.commander_reference} · Alpha 8 (Ch 1) / Bravo 6 (Ch 2)`,
+          title: 'Commander confirmed allocations & pre-cached search area',
+          details: `${currentRescue.commander_reference} · Alpha 8 (Ch 1) / Bravo 6 (Ch 2) · Z11-Z14 tiles & weather pre-cached`,
           timestamp: now.toISOString(),
         },
       ],
     };
 
+    areaPrecacheService.triggerAreaPrecache(updated, {
+      triggeredFrom: 'Search Plan → Active Operation Transition',
+    });
     await rescueRepository.save(updated);
     setCurrentStep(7);
   };
@@ -407,47 +412,49 @@ export const App: React.FC = () => {
     setShowLogObservationModal(false);
   };
 
-  // Desktop Navigation items — Clear hierarchy & >= 44pt tap targets
+  // Desktop Navigation items
   const navItems = [
-    { step: 1, label: '01 Field Workspace', icon: <Layers size={19} /> },
-    { step: 7, label: '07 Active Operation', icon: <Compass size={19} /> },
-    { step: 8, label: '08 Evidence Review', icon: <Camera size={19} /> },
-    { step: 9, label: '09 Audit & Closure', icon: <FileText size={19} /> },
+    { step: 1, label: '01 Field Workspace', icon: <Layers size={18} /> },
+    { step: 7, label: '07 Active Operation', icon: <Compass size={18} /> },
+    { step: 8, label: '08 Evidence Review', icon: <Camera size={18} /> },
+    { step: 9, label: '09 Audit & Closure', icon: <FileText size={18} /> },
   ];
 
   return (
-    <div className="h-screen w-full overflow-hidden bg-[#EDF2EF] text-[#081820] flex lg:grid lg:grid-cols-[minmax(268px,296px)_1fr]">
-      {/* 1. Desktop Sidebar (Apple HIG Sidebars: W = 260-320pt, grid-template-columns: minmax(260px, 320px) 1fr) */}
-      <aside className="hidden lg:flex flex-col bg-white border-r border-[#CBD8D4] shrink-0 z-20 overflow-y-auto">
+    <div className="h-dvh w-full overflow-hidden bg-[#E5E4E2] text-[#0A0A0A] flex lg:grid lg:grid-cols-[minmax(272px,296px)_1fr]">
+      {/* 1. Desktop Sidebar — Onyx (#0A0A0A) with Film Grain & Blue Slate (#536878) */}
+      <aside className="hidden lg:flex flex-col bg-[#0A0A0A] text-[#E5E4E2] abertech-grain border-r border-[#536878]/40 shrink-0 z-20 overflow-y-auto">
         {/* Brand Header */}
-        <div className="p-4 border-b border-[#CBD8D4]">
-          <AberTechBrand />
+        <div className="p-4 border-b border-[#536878]/35">
+          <AberTechBrand dark subtitle="Field · SR Portal" />
         </div>
 
         {/* Landing Page & Pitch Highlight Button */}
-        <div className="p-3.5 pb-2 border-b border-[#CBD8D4]/70">
+        <div className="p-3.5 pb-2 border-b border-[#536878]/30">
           <button
             type="button"
-            onClick={() => setIsLandingPage(true)}
-            className={`w-full flex items-center justify-between px-3.5 py-2.5 min-h-[46px] rounded-xl text-sm font-bold transition-colors border cursor-pointer ${
+            onClick={() => setIsLandingPage(!isLandingPage)}
+            className={`w-full flex items-center justify-between px-3.5 py-2.5 min-h-[44px] rounded-full text-sm font-bold transition-colors border cursor-pointer ${
               isLandingPage
-                ? 'bg-[#0B6758] text-white border-[#085446]'
-                : 'bg-[#081820] text-white border-[#081820] hover:bg-[#1B4D3E]'
+                ? 'bg-[#E5A996] text-[#0A0A0A] border-[#E5A996]'
+                : 'bg-[#12161B] text-[#E5E4E2] border-[#536878]/60 hover:border-[#E5A996]/70 hover:bg-[#536878]/25'
             }`}
           >
             <div className="flex items-center gap-2.5">
-              <Globe size={18} className="text-[#88C070]" />
-              <span>Overview &amp; Pitch</span>
+              <Globe size={17} className={isLandingPage ? 'text-[#0A0A0A]' : 'text-[#E5A996]'} />
+              <span className="font-serif-editorial tracking-wide">
+                {isLandingPage ? 'Return to Portal' : 'Editorial Overview'}
+              </span>
             </div>
-            <span className="text-xs bg-[#88C070] text-[#081820] px-2 py-0.5 rounded-md font-mono font-bold">
-              MVP
+            <span className="text-[11px] bg-[#536878] text-[#E5E4E2] px-2 py-0.5 rounded-full font-mono font-bold">
+              POC
             </span>
           </button>
         </div>
 
         {/* Primary Step Navigation */}
-        <div className="p-3.5 space-y-1.5">
-          <div className="px-2.5 py-1 text-xs font-bold text-[#1E3831]">
+        <div className="p-3.5 space-y-1">
+          <div className="px-2.5 py-1 text-[11px] font-mono font-bold uppercase tracking-widest text-[#9FB2C0]">
             Mission Workflow
           </div>
           {navItems.map((item) => {
@@ -461,13 +468,13 @@ export const App: React.FC = () => {
                   setShowSettings(false);
                   setCurrentStep(item.step);
                 }}
-                className={`w-full flex items-center gap-3 px-3.5 py-2.5 min-h-[46px] rounded-xl text-sm font-semibold transition-colors cursor-pointer border ${
+                className={`w-full flex items-center gap-3 px-3.5 py-2.5 min-h-[44px] rounded-xl text-sm transition-colors cursor-pointer ${
                   isActive
-                    ? 'bg-[#E1ECE8] text-[#064E3B] border-[#0B6758] font-bold'
-                    : 'bg-transparent text-[#081820] border-transparent hover:bg-[#EDF2EF]'
+                    ? 'bg-[#536878] text-[#E5E4E2] font-bold border border-[#E5E4E2]/20'
+                    : 'bg-transparent text-[#E5E4E2]/80 font-medium hover:bg-white/5 hover:text-[#E5E4E2]'
                 }`}
               >
-                <span className={isActive ? 'text-[#0B6758]' : 'text-[#1E3831]'}>{item.icon}</span>
+                <span className={isActive ? 'text-[#E5A996]' : 'text-[#9FB2C0]'}>{item.icon}</span>
                 <span>{item.label}</span>
               </button>
             );
@@ -476,8 +483,8 @@ export const App: React.FC = () => {
 
         {/* Setup Wizard Steps Sub-section (if in setup) */}
         {currentStep >= 2 && currentStep <= 6 && !isLandingPage && !showSettings && (
-          <div className="p-3.5 border-t border-[#CBD8D4] bg-[#F6F9F7] space-y-1">
-            <div className="px-2.5 py-1 text-xs font-bold text-[#0B6758]">
+          <div className="p-3.5 border-t border-[#536878]/35 bg-[#12161B] space-y-1">
+            <div className="px-2.5 py-1 text-[11px] font-mono font-bold uppercase tracking-widest text-[#E5A996]">
               Incident Setup Steps
             </div>
             {[
@@ -491,10 +498,10 @@ export const App: React.FC = () => {
                 key={stepItem.s}
                 type="button"
                 onClick={() => setCurrentStep(stepItem.s)}
-                className={`w-full text-left px-3.5 py-2 min-h-[44px] rounded-xl text-xs font-semibold transition-colors cursor-pointer ${
+                className={`w-full text-left px-3.5 py-2 min-h-[40px] rounded-xl text-xs font-semibold transition-colors cursor-pointer ${
                   currentStep === stepItem.s
-                    ? 'font-bold text-white bg-[#0B6758]'
-                    : 'text-[#081820] hover:bg-[#E1ECE8]/60'
+                    ? 'font-bold text-[#0A0A0A] bg-[#E5A996]'
+                    : 'text-[#E5E4E2]/80 hover:bg-white/10'
                 }`}
               >
                 {stepItem.name}
@@ -503,44 +510,61 @@ export const App: React.FC = () => {
           </div>
         )}
 
-        {/* Selected Mission Summary Card with Activity Ring */}
+        {/* Selected Mission Summary Card with Mountain Horizon (IMG_7717) */}
         {currentRescue && (
-          <div className="p-3.5 mx-3.5 my-2 bg-[#F6F9F7] text-[#081820] rounded-xl border border-[#B8C9C3] space-y-2.5">
+          <MountainHorizonCard
+            onClick={() => {
+              setIsLandingPage(false);
+              setShowSettings(false);
+              setCurrentStep(7);
+            }}
+            className="mx-3.5 my-2 p-4 pb-8 space-y-2.5 border-[#536878]/60"
+          >
             <div className="flex items-center justify-between text-xs">
-              <span className="font-mono font-bold text-[#064E3B] bg-[#E1ECE8] px-2 py-0.5 rounded border border-[#A7C7BE] tabular-nums">
+              <span className="font-mono font-bold text-[#0A0A0A] bg-[#E5A996] px-2.5 py-0.5 rounded-full tabular-nums">
                 {currentRescue.mission_reference}
               </span>
-              <span className="text-xs text-[#1E3831] font-mono font-semibold">
+              <span className="text-xs text-[#9FB2C0] font-mono font-semibold">
                 Cmdr {currentRescue.commander_reference}
               </span>
             </div>
             <div>
-              <div className="text-sm font-bold text-[#081820] truncate">
+              <div className="text-base font-serif-editorial font-bold text-[#E5E4E2] truncate">
                 {currentRescue.mission_name}
               </div>
-              <div className="text-xs text-[#1E3831] truncate">
+              <div className="text-xs text-[#9FB2C0] truncate">
                 {currentRescue.location_label}
               </div>
             </div>
-            <div className="pt-2 border-t border-[#CBD8D4] flex items-center justify-between">
-              <ActivityRing percentage={68} size={36} strokeWidth={4} label="Sector Sweep" />
+            <div className="pt-2 border-t border-[#536878]/40 flex items-center justify-between">
+              <ActivityRing
+                percentage={68}
+                size={34}
+                strokeWidth={4}
+                color="#86EFAC"
+                label="Sector Sweep"
+                dark
+              />
+              <span className="text-[11px] font-mono font-bold px-2.5 py-1 rounded-full bg-[#536878]/80 text-[#E5E4E2]">
+                Begin →
+              </span>
             </div>
-          </div>
+          </MountainHorizonCard>
         )}
 
         {/* Spacer */}
         <div className="flex-1" />
 
         {/* Bottom Hardware Tag & Settings */}
-        <div className="p-3.5 border-t border-[#CBD8D4] space-y-2.5 bg-[#F6F9F7]">
-          <div className="flex items-center justify-between text-xs font-semibold text-[#1E3831]">
-            <span className="font-mono font-bold bg-white px-2.5 py-1 rounded-md border border-[#CBD8D4] text-[#081820]">
+        <div className="p-3.5 border-t border-[#536878]/35 space-y-2.5 bg-[#0E1216]">
+          <div className="flex items-center justify-between text-xs font-semibold text-[#9FB2C0]">
+            <span className="font-mono font-bold bg-[#0A0A0A] px-2.5 py-1 rounded-md border border-[#536878]/50 text-[#E5E4E2]">
               {settingsStore.settings.deviceTag}
             </span>
-            <span className="text-[#0B6758] font-bold">Offline Ready</span>
+            <span className="text-[#86EFAC] font-mono font-bold">Offline Ready</span>
           </div>
-          <div className="flex items-center gap-2 text-xs font-medium text-[#1E3831]">
-            <ShieldCheck size={16} className="text-[#0B6758] shrink-0" />
+          <div className="flex items-center gap-2 text-xs font-medium text-[#9FB2C0]">
+            <ShieldCheck size={15} className="text-[#E5A996] shrink-0" />
             <span>3-Year 2 CFR 200 Retention</span>
           </div>
 
@@ -550,49 +574,39 @@ export const App: React.FC = () => {
               setIsLandingPage(false);
               setShowSettings(true);
             }}
-            className={`w-full flex items-center justify-center gap-2 px-3.5 py-2.5 min-h-[44px] rounded-xl border text-sm font-bold transition-colors cursor-pointer ${
+            className={`w-full flex items-center justify-center gap-2 px-3.5 py-2.5 min-h-[44px] rounded-full border text-xs font-bold transition-colors cursor-pointer ${
               showSettings
-                ? 'bg-[#0B6758] text-white border-[#085446]'
-                : 'bg-white hover:bg-[#E1ECE8] text-[#081820] border-[#8BA39B]'
+                ? 'bg-[#536878] text-[#E5E4E2] border-[#E5E4E2]/40'
+                : 'bg-[#12161B] hover:bg-[#536878]/30 text-[#E5E4E2] border-[#536878]/50'
             }`}
           >
-            <SettingsIcon size={17} />
-            <span>Display &amp; Accessibility</span>
+            <SettingsIcon size={16} />
+            <span>Display &amp; Settings</span>
           </button>
         </div>
       </aside>
 
       {/* 2. Main Content Area */}
-      <div className="flex-1 flex flex-col h-full overflow-hidden min-w-0">
-        {/* Top Dual Status Header with Persistence, Radio state, Dynamic Type Scale, and Pitch Toggle */}
-        <div className="shrink-0 flex items-center justify-between bg-[#EDF2EF] border-b border-[#CBD8D4] pr-4">
-          <div className="flex-1 min-w-0">
-            <DualStatusHeader />
-          </div>
-          <button
-            type="button"
-            onClick={() => setIsLandingPage(!isLandingPage)}
-            className={`hidden sm:inline-flex items-center gap-2 px-4 py-2 min-h-[44px] rounded-xl text-xs font-bold transition-colors border shrink-0 cursor-pointer ${
-              isLandingPage
-                ? 'bg-[#0B6758] text-white border-[#085446] hover:bg-[#085446]'
-                : 'bg-white hover:bg-[#E1ECE8] text-[#081820] border-[#8BA39B]'
-            }`}
-          >
-            <Globe size={16} className="text-[#0B6758]" />
-            <span>{isLandingPage ? 'Return to SAR Portal' : 'Overview & Pitch'}</span>
-          </button>
+      <div className="flex-1 flex flex-col h-full min-h-0 overflow-hidden min-w-0">
+        {/* Top Dual Status Header */}
+        <div className="shrink-0 border-b border-[#C7C6C1]">
+          <DualStatusHeader />
         </div>
 
         {/* Mobile App Bar Header (<1024px) */}
-        <div className="lg:hidden shrink-0 flex items-center justify-between px-4 py-2.5 bg-white border-b border-[#CBD8D4]">
-          <AberTechBrand />
+        <div className="lg:hidden shrink-0 flex items-center justify-between px-4 py-2.5 bg-[#0A0A0A] text-[#E5E4E2] border-b border-[#536878]/50">
+          <AberTechBrand dark />
           <div className="flex items-center gap-2">
             <button
               type="button"
               onClick={() => setIsLandingPage(!isLandingPage)}
-              className="px-3.5 py-2 min-h-[44px] min-w-[44px] rounded-xl text-xs font-bold bg-[#081820] text-white cursor-pointer"
+              className={`px-3.5 py-1.5 min-h-[38px] rounded-full text-xs font-bold transition-colors cursor-pointer border ${
+                isLandingPage
+                  ? 'bg-[#E5A996] text-[#0A0A0A] border-[#E5A996]'
+                  : 'bg-[#536878] text-[#E5E4E2] border-[#536878] hover:bg-[#3D4E5B]'
+              }`}
             >
-              {isLandingPage ? 'Portal' : 'Overview'}
+              {isLandingPage ? 'Portal' : 'Pitch'}
             </button>
             <button
               type="button"
@@ -600,7 +614,7 @@ export const App: React.FC = () => {
                 setIsLandingPage(false);
                 setShowSettings(!showSettings);
               }}
-              className="p-2.5 min-h-[44px] min-w-[44px] flex items-center justify-center rounded-xl text-[#081820] bg-[#EDF2EF] border border-[#B8C9C3] hover:bg-[#E1ECE8] cursor-pointer"
+              className="p-2 min-h-[40px] min-w-[40px] flex items-center justify-center rounded-lg text-[#9FB2C0] hover:text-[#E5E4E2] hover:bg-white/10 cursor-pointer"
               title="Display & Accessibility Settings"
               aria-label="Display and Accessibility Settings"
             >
@@ -609,8 +623,8 @@ export const App: React.FC = () => {
           </div>
         </div>
 
-        {/* Active Screen Container (Scroll View with overscroll-behavior: contain) */}
-        <main className="flex-1 flex flex-col overflow-hidden relative hig-scroll-view">
+        {/* Active Screen Container (min-h-0 ensures flex child scrolls properly on mobile & desktop) */}
+        <main className="flex-1 min-h-0 flex flex-col overflow-hidden relative hig-scroll-view">
           {isLandingPage ? (
             <LandingPage
               onLaunchOperation={() => {
@@ -634,6 +648,7 @@ export const App: React.FC = () => {
               onOpenRescue={handleOpenRescue}
               onNewIncident={handleNewIncident}
               onOpenAudit={handleOpenAudit}
+              onOpenEvidence={() => setCurrentStep(8)}
             />
           ) : currentStep === 2 ? (
             <NewIncidentScreen
@@ -667,7 +682,19 @@ export const App: React.FC = () => {
             <SearchPlanScreen
               rescue={currentRescue}
               onRevise={() => setCurrentStep(4)}
-              onProceedToReview={() => setCurrentStep(6)}
+              onProceedToReview={() => {
+                areaPrecacheService.triggerAreaPrecache(currentRescue, {
+                  triggeredFrom: 'Search Plan → Commander Confirmation',
+                });
+                setCurrentStep(6);
+              }}
+              onLaunchActiveOperation={() => {
+                areaPrecacheService.triggerAreaPrecache(currentRescue, {
+                  triggeredFrom: 'Search Plan → Active Operation Direct Launch',
+                  force: true,
+                });
+                setCurrentStep(7);
+              }}
             />
           ) : currentStep === 6 && currentRescue ? (
             <ResourcesReviewScreen
@@ -697,7 +724,7 @@ export const App: React.FC = () => {
               onReopen={handleReopenMission}
             />
           ) : (
-            <div className="flex-1 flex items-center justify-center gap-2.5 p-6 text-base font-medium text-[#1E3831]">
+            <div className="flex-1 flex items-center justify-center gap-2.5 p-6 text-base font-medium text-[#4A635D]">
               <Loader2 size={20} className="animate-spin text-[#0B6758]" />
               <span>Loading incident workspace...</span>
             </div>
@@ -710,27 +737,27 @@ export const App: React.FC = () => {
         )}
       </div>
 
-      {/* Modal Sheet: Log Observation / Field Note (Apple HIG Alerts & Sheets: explicit dismissal, 44pt inputs, 17px font) */}
+      {/* Modal Sheet: Log Observation / Field Note */}
       {showLogObservationModal && (
         <div
           className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4"
           onClick={() => setShowLogObservationModal(false)}
         >
           <div
-            className="bg-white rounded-2xl max-w-lg w-full p-5 sm:p-6 space-y-5 shadow-2xl border border-[#B8C9C3]"
+            className="bg-white rounded-2xl max-w-lg w-full p-5 sm:p-6 space-y-5 shadow-2xl border border-[#DCE5E1]"
             onClick={(e) => e.stopPropagation()}
             role="dialog"
             aria-modal="true"
             aria-labelledby="log-obs-modal-title"
           >
-            <div className="flex items-center justify-between border-b border-[#CBD8D4] pb-3">
-              <h3 id="log-obs-modal-title" className="font-bold text-base text-[#081820]">
+            <div className="flex items-center justify-between border-b border-[#DCE5E1] pb-3">
+              <h3 id="log-obs-modal-title" className="font-bold text-base text-[#1C2E2A]">
                 Log Field Observation / Radio Note
               </h3>
               <button
                 type="button"
                 onClick={() => setShowLogObservationModal(false)}
-                className="min-h-[44px] min-w-[44px] inline-flex items-center justify-center rounded-xl text-[#1E3831] hover:bg-[#EDF2EF] transition-colors cursor-pointer"
+                className="min-h-[44px] min-w-[44px] inline-flex items-center justify-center rounded-xl text-[#4A635D] hover:bg-[#F4F7F5] transition-colors cursor-pointer"
                 aria-label="Close modal"
               >
                 <X size={20} />
@@ -741,7 +768,7 @@ export const App: React.FC = () => {
               <div>
                 <label
                   htmlFor="obs-sector-select"
-                  className="block text-sm font-bold text-[#081820] mb-1.5"
+                  className="block text-sm font-bold text-[#1C2E2A] mb-1.5"
                 >
                   Sector / Source
                 </label>
@@ -749,7 +776,7 @@ export const App: React.FC = () => {
                   id="obs-sector-select"
                   value={obsSector}
                   onChange={(e) => setObsSector(e.target.value)}
-                  className="w-full px-3.5 py-2.5 min-h-[44px] rounded-xl border border-[#8BA39B] text-[#081820] bg-[#F6F9F7] focus:bg-white"
+                  className="w-full px-3.5 py-2.5 min-h-[44px] rounded-xl border border-[#CBD8D4] text-[#1C2E2A] bg-[#F4F7F5] focus:bg-white"
                 >
                   <option value="Sector A (Alpha)">Sector A · Northern path (Team Alpha)</option>
                   <option value="Sector B (Bravo)">Sector B · Southern drainage (Team Bravo)</option>
@@ -761,7 +788,7 @@ export const App: React.FC = () => {
               <div>
                 <label
                   htmlFor="obs-entry-textarea"
-                  className="block text-sm font-bold text-[#081820] mb-1.5"
+                  className="block text-sm font-bold text-[#1C2E2A] mb-1.5"
                 >
                   Observation Entry
                 </label>
@@ -771,12 +798,12 @@ export const App: React.FC = () => {
                   value={obsNote}
                   onChange={(e) => setObsNote(e.target.value)}
                   placeholder="e.g. Footprints identified heading NE on ridge path; visibility dropping to 2km."
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-[#8BA39B] text-[#081820] bg-[#F6F9F7] focus:bg-white leading-relaxed"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-[#CBD8D4] text-[#1C2E2A] bg-[#F4F7F5] focus:bg-white leading-relaxed"
                 />
               </div>
             </div>
 
-            <div className="flex items-center justify-end gap-3 pt-3 border-t border-[#CBD8D4]">
+            <div className="flex items-center justify-end gap-3 pt-3 border-t border-[#DCE5E1]">
               <SecondaryButton onClick={() => setShowLogObservationModal(false)}>
                 Cancel
               </SecondaryButton>

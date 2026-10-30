@@ -1,6 +1,6 @@
 import { AppSettings } from '../types';
 
-const SETTINGS_KEY = 'srportal_settings_v2';
+const SETTINGS_KEY = 'srportal_settings_v3';
 
 export const defaultSettings: AppSettings = {
   baseUrl: 'http://localhost:8000/',
@@ -10,16 +10,16 @@ export const defaultSettings: AppSettings = {
   activeMapPack: 'Bannau map pack',
   deviceTag: 'ABER-04',
   darkMode: false,
-  uiScale: 'weather-lg', // Scaled font & UI elements for poor light and bad weather conditions
-  lightingCondition: 'poor-light-hivis', // High-contrast poor-light visibility preset
-  gloveMode: true, // Oversized wet-screen / winter-glove tactile touch targets (>=48px)
+  uiScale: 'standard', // Clean default scale with optional foul-weather scaling
+  lightingCondition: 'daylight-field', // Balanced high-contrast field theme by default
+  gloveMode: true, // 44x44pt tactile touch targets
 };
 
 export function applyFieldErgonomicsToDOM(settings: AppSettings): void {
   if (typeof document === 'undefined') return;
   const root = document.documentElement;
-  root.dataset.uiScale = settings.uiScale || 'weather-lg';
-  root.dataset.lighting = settings.lightingCondition || 'poor-light-hivis';
+  root.dataset.uiScale = settings.uiScale || 'standard';
+  root.dataset.lighting = settings.lightingCondition || 'daylight-field';
   root.dataset.gloveMode = String(settings.gloveMode !== false);
   root.dataset.darkMode = String(Boolean(settings.darkMode));
 }
@@ -77,4 +77,3 @@ export class SettingsStore {
 }
 
 export const settingsStore = new SettingsStore();
-

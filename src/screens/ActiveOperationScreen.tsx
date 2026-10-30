@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import {
   ActivityRing,
+  AreaPrecacheBanner,
   PrimaryButton,
   SecondaryButton,
   StepHeader,
@@ -52,6 +53,7 @@ import {
   stepLiveTeamPositions,
   WEATHER_PRESETS,
 } from '../core/CausalityModel';
+import { areaPrecacheService } from '../core/AreaPrecacheService';
 
 interface ActiveOperationScreenProps {
   rescue: Rescue;
@@ -77,6 +79,13 @@ export const ActiveOperationScreen: React.FC<ActiveOperationScreenProps> = ({
   const [trackingSpeed, setTrackingSpeed] = useState<1 | 2 | 5>(1);
   const [isDispatchingWaypoint, setIsDispatchingWaypoint] = useState<boolean>(false);
   const [followSelectedTeam, setFollowSelectedTeam] = useState<boolean>(false);
+
+  // Ensure background pre-caching of map tiles & weather is triggered on entering Active Operation
+  useEffect(() => {
+    areaPrecacheService.triggerAreaPrecache(rescue, {
+      triggeredFrom: 'Transition to Active Operation (Step 07)',
+    });
+  }, [rescue]);
 
   // Live telemetry event stream
   const [liveEvents, setLiveEvents] = useState<LivePositionEvent[]>([
@@ -440,7 +449,9 @@ export const ActiveOperationScreen: React.FC<ActiveOperationScreenProps> = ({
 
   const handleSelectHex = (cell: SearchCell, report: CellCausalityReport) => {
     setSelectedCell(cell);
-    setSelectedReport(report);
+    const cachedEntry = areaPrecacheService.getCachedSectorWeather(cell.cell_id);
+    const cachedScenarioReport = cachedEntry?.scenarioReports?.[weather.scenario];
+    setSelectedReport(cachedScenarioReport || report);
   };
 
   const handleLocateTeam = (team: TacticalTeam) => {
@@ -654,14 +665,14 @@ export const ActiveOperationScreen: React.FC<ActiveOperationScreenProps> = ({
     tacticalTeams.find((t) => t.id === selectedTeamId) || tacticalTeams[0];
 
   return (
-    <div className="flex-1 flex flex-col bg-[#EDF2EF] overflow-y-auto hig-scroll-view">
+    <div className="flex-1 min-h-0 flex flex-col bg-[#F4F7F5] overflow-y-auto hig-scroll-view">
       <StepHeader
         stepNumber="07 / 09"
-        stepTitle="Active Operation · Live Position & Team Status"
+        stepTitle="ACTIVE OPERATION · LIVE POSITION & TEAM STATUS"
         missionRef={rescue.mission_reference}
       />
 
-      <div className="p-4 sm:p-6 hig-safe-area max-w-7xl mx-auto w-full space-y-5">
+      <div className="p-4 sm:p-6 pb-8 hig-safe-area max-w-7xl mx-auto w-full space-y-5">
         {/* Top Header Card — Clean Typography & >= 44pt Primary Actions */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 tactical-card p-4 sm:p-5 rounded-2xl">
           <div>
@@ -800,6 +811,9 @@ export const ActiveOperationScreen: React.FC<ActiveOperationScreenProps> = ({
           isSimulatingLowBattery={isSimulatingLowBattery}
           onExportAuditLog={handleExportAuditLog}
         />
+
+        {/* Background Area Pre-Cache Status Banner (Map Tiles & Sector Weather) */}
+        <AreaPrecacheBanner rescue={rescue} compact />
 
         {/* Quick Weather Report & Simulation Widget */}
         <QuickWeatherWidget

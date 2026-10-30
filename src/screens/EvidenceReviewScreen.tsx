@@ -48,14 +48,14 @@ export const EvidenceReviewScreen: React.FC<EvidenceReviewScreenProps> = ({
   };
 
   return (
-    <div className="flex-1 flex flex-col bg-[#EDF2EF] overflow-y-auto hig-scroll-view">
+    <div className="flex-1 min-h-0 flex flex-col bg-[#F4F7F5] overflow-y-auto hig-scroll-view">
       <StepHeader
         stepNumber="08 / 09"
-        stepTitle="Evidence & Local Sources Review"
+        stepTitle="EVIDENCE & LOCAL SOURCES REVIEW"
         missionRef={rescue.mission_reference}
       />
 
-      <div className="p-4 sm:p-6 hig-safe-area max-w-5xl mx-auto w-full space-y-5">
+      <div className="p-4 sm:p-6 pb-8 hig-safe-area max-w-5xl mx-auto w-full space-y-5">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>
             <h1 className="text-xl sm:text-2xl font-bold text-[#081820] tracking-tight">

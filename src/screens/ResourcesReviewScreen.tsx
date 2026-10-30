@@ -17,7 +17,14 @@ import {
   Wrench,
   AlertTriangle,
 } from 'lucide-react';
-import { Card, PrimaryButton, SecondaryButton, StatusBadge, StepHeader } from '../components/Common';
+import {
+  AreaPrecacheBanner,
+  Card,
+  PrimaryButton,
+  SecondaryButton,
+  StatusBadge,
+  StepHeader,
+} from '../components/Common';
 import { DetailedWeatherReport, Rescue, WeatherScenarioKey } from '../types';
 import { QuickWeatherWidget } from '../components/QuickWeatherWidget';
 import {
@@ -25,6 +32,7 @@ import {
   evaluateCellViability,
   WEATHER_PRESETS,
 } from '../core/CausalityModel';
+import { areaPrecacheService } from '../core/AreaPrecacheService';
 
 interface ResourcesReviewScreenProps {
   rescue: Rescue;
@@ -63,14 +71,14 @@ export const ResourcesReviewScreen: React.FC<ResourcesReviewScreenProps> = ({
   };
 
   return (
-    <div className="flex-1 flex flex-col bg-[#F4F6F5] overflow-y-auto">
+    <div className="flex-1 min-h-0 flex flex-col bg-[#F4F7F5] overflow-y-auto hig-scroll-view">
       <StepHeader
         stepNumber="06 / 09"
         stepTitle="COMMANDER CONFIRMATION"
         missionRef={rescue.mission_reference}
       />
 
-      <div className="p-4 sm:p-6 max-w-5xl mx-auto w-full space-y-5">
+      <div className="p-4 sm:p-6 pb-8 max-w-5xl mx-auto w-full space-y-5">
         <div>
           <h1 className="text-xl sm:text-2xl font-black text-[#1C2E2A] tracking-tight">
             Resources & Causality Feasibility Sign-off
@@ -79,6 +87,9 @@ export const ResourcesReviewScreen: React.FC<ResourcesReviewScreenProps> = ({
             Step 6 of 9 · Verify resource feasibility and confirm radio allocations using real-time causality model
           </p>
         </div>
+
+        {/* Background Pre-Cache Status Banner */}
+        <AreaPrecacheBanner rescue={rescue} />
 
         {/* Quick Weather Report & Live Atmospheric Constraints */}
         <QuickWeatherWidget
@@ -231,7 +242,12 @@ export const ResourcesReviewScreen: React.FC<ResourcesReviewScreenProps> = ({
             Back to search plan
           </SecondaryButton>
           <PrimaryButton
-            onClick={onConfirmAndStart}
+            onClick={() => {
+              areaPrecacheService.triggerAreaPrecache(rescue, {
+                triggeredFrom: 'Step 06 Confirm & Start Operation',
+              });
+              onConfirmAndStart();
+            }}
             disabled={!isConfirmed}
             icon={<Compass size={16} />}
           >

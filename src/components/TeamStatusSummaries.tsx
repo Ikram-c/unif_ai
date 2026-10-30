@@ -78,16 +78,16 @@ export const TeamBatteryPill: React.FC<TeamBatteryPillProps> = ({
   const isAmber = clamped >= 20 && clamped <= 50;
 
   const colorClasses = isRed
-    ? 'bg-[#DC2626] text-white border-[#7F1D1D] animate-pulse'
+    ? 'bg-[#FF3B30] text-white border-[#D70015] animate-pulse'
     : isAmber
-    ? 'bg-[#FEF3DD] text-[#78350F] border-[#D97706]'
-    : 'bg-[#E1ECE8] text-[#064E3B] border-[#0B6758]';
+    ? 'bg-[#FFF8E6] text-[#9A690B] border-[#FF9500]/60'
+    : 'bg-[#E8F8EE] text-[#15803D] border-[#34C759]/60';
 
   const dotClasses = isRed
     ? 'bg-[#FACC15] animate-ping'
     : isAmber
-    ? 'bg-[#D97706]'
-    : 'bg-[#0B6758]';
+    ? 'bg-[#FF9500]'
+    : 'bg-[#34C759]';
 
   const sizeClasses =
     size === 'sm'
@@ -115,7 +115,7 @@ export const TeamBatteryPill: React.FC<TeamBatteryPillProps> = ({
         <Battery
           size={size === 'sm' ? 13 : 14}
           className={
-            isAmber ? 'text-[#B45309] shrink-0' : 'text-[#0B6758] shrink-0'
+            isAmber ? 'text-[#B45309] shrink-0' : 'text-[#15803D] shrink-0'
           }
         />
       )}
@@ -126,8 +126,8 @@ export const TeamBatteryPill: React.FC<TeamBatteryPillProps> = ({
             isRed
               ? 'text-[#FEF08A]'
               : isAmber
-              ? 'text-[#78350F]'
-              : 'text-[#064E3B]'
+              ? 'text-[#9A690B]'
+              : 'text-[#15803D]'
           }`}
         >
           {tierLabel}

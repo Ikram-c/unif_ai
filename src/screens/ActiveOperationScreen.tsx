@@ -1,15 +1,21 @@
 import React, { useEffect, useState } from 'react';
 import {
+  ArrowLeft,
+  ArrowRight,
   BatteryWarning,
   Camera,
   CheckCircle2,
   ChevronRight,
+  CloudRain,
   Compass,
   Crosshair,
+  Download,
   FileCheck,
   Layers,
   PlusCircle,
+  Radio,
   Search,
+  ShieldAlert,
   X,
 } from 'lucide-react';
 import {
@@ -62,12 +68,17 @@ interface ActiveOperationScreenProps {
   onLogObservation: () => void;
 }
 
+type OperationSubScreen = 'MAP' | 'TEAMS' | 'WEATHER' | 'SAFETY';
+
 export const ActiveOperationScreen: React.FC<ActiveOperationScreenProps> = ({
   rescue,
   onOpenEvidence,
   onOpenCloseout,
   onLogObservation,
 }) => {
+  // Active sub-screen so information is spread calmly across 4 screens
+  const [activeSubScreen, setActiveSubScreen] = useState<OperationSubScreen>('MAP');
+
   // Atmospheric conditions & causality state
   const [weather, setWeather] = useState<DetailedWeatherReport>(WEATHER_PRESETS.BASELINE);
   const [tacticalTeams, setTacticalTeams] = useState<TacticalTeam[]>(DEFAULT_TACTICAL_TEAMS);
@@ -457,7 +468,10 @@ export const ActiveOperationScreen: React.FC<ActiveOperationScreenProps> = ({
   const handleLocateTeam = (team: TacticalTeam) => {
     setSelectedTeamId(team.id);
     setMapCenter(team.position);
-    showToast(`Centered on Team ${team.callsign} (${team.telematics?.osGridRef || team.sector})`);
+    setActiveSubScreen('MAP');
+    showToast(
+      `Centered map on Team ${team.callsign} (${team.telematics?.osGridRef || team.sector})`
+    );
   };
 
   const handleAssignTeamToCell = (teamCallsign: string, cellId: string) => {
@@ -619,6 +633,7 @@ export const ActiveOperationScreen: React.FC<ActiveOperationScreenProps> = ({
 
   const handleTriggerWeatherFlare = () => {
     handleSelectScenario('SUMMIT_GALE');
+    setActiveSubScreen('WEATHER');
   };
 
   const handleExportAuditLog = () => {
@@ -661,14 +676,70 @@ export const ActiveOperationScreen: React.FC<ActiveOperationScreenProps> = ({
   };
 
   const driftedTeams = tacticalTeams.filter((t) => t.isDrifted);
+  const criticalBatteryCount = tacticalTeams.filter(
+    (t) => (t.batteryPct !== undefined ? t.batteryPct : t.endurancePct) < 20
+  ).length;
   const activeSelectedTeam =
     tacticalTeams.find((t) => t.id === selectedTeamId) || tacticalTeams[0];
 
+  const SUB_SCREENS: {
+    id: OperationSubScreen;
+    num: string;
+    label: string;
+    subtitle: string;
+    icon: React.ReactNode;
+    badge?: string;
+    badgeAlert?: boolean;
+  }[] = [
+    {
+      id: 'MAP',
+      num: '01',
+      label: 'Tactical Map & Sectors',
+      subtitle: 'H3 hex grid & unit vectoring',
+      icon: <Compass size={17} />,
+      badge: `${tacticalTeams.filter((t) => t.speedKmh > 0).length} Moving`,
+    },
+    {
+      id: 'TEAMS',
+      num: '02',
+      label: 'Units & Radio Telemetry',
+      subtitle: 'Battery pills & live VHF feed',
+      icon: <Radio size={17} />,
+      badge: criticalBatteryCount > 0 ? `${criticalBatteryCount} Low Batt` : `${tacticalTeams.length} Teams`,
+      badgeAlert: criticalBatteryCount > 0,
+    },
+    {
+      id: 'WEATHER',
+      num: '03',
+      label: 'Weather & Offline Cache',
+      subtitle: 'Causality simulator & pre-cache',
+      icon: <CloudRain size={17} />,
+      badge: `${Math.round(weather.wind_ms * 1.944)} kts`,
+      badgeAlert: weather.gust_ms > 16.5 || weather.cloud_ceiling_m < 600,
+    },
+    {
+      id: 'SAFETY',
+      num: '04',
+      label: 'Geofence, Evidence & Audit',
+      subtitle: 'Boundary drift & 2 CFR 200',
+      icon: <ShieldAlert size={17} />,
+      badge:
+        driftedTeams.length > 0
+          ? `${driftedTeams.length} Breach`
+          : candidate
+          ? '1 Candidate'
+          : 'Nominal',
+      badgeAlert: driftedTeams.length > 0,
+    },
+  ];
+
+  const currentSubScreenIdx = SUB_SCREENS.findIndex((s) => s.id === activeSubScreen);
+
   return (
-    <div className="flex-1 min-h-0 flex flex-col bg-[#F4F7F5] overflow-y-auto hig-scroll-view">
+    <div className="flex-1 min-h-0 flex flex-col bg-[#F2F2F7] overflow-y-auto hig-scroll-view">
       <StepHeader
         stepNumber="07 / 09"
-        stepTitle="ACTIVE OPERATION · LIVE POSITION & TEAM STATUS"
+        stepTitle="ACTIVE OPERATION · MULTI-SCREEN COMMAND"
         missionRef={rescue.mission_reference}
       />
 
@@ -677,17 +748,17 @@ export const ActiveOperationScreen: React.FC<ActiveOperationScreenProps> = ({
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 tactical-card p-4 sm:p-5 rounded-2xl">
           <div>
             <div className="flex items-center gap-2.5 flex-wrap">
-              <span className="font-mono font-bold text-xs sm:text-sm bg-[#E1ECE8] text-[#064E3B] px-3 py-1 rounded-lg border border-[#A7C7BE] tabular-nums">
+              <span className="font-mono font-semibold text-xs sm:text-sm bg-[#007AFF]/10 text-[#007AFF] px-3 py-1 rounded-lg border border-[#007AFF]/20 tabular-nums">
                 {rescue.mission_reference}
               </span>
-              <h1 className="text-xl sm:text-2xl font-bold text-[#081820] tracking-tight">
-                {rescue.mission_name} · Live Position &amp; Team Status
+              <h1 className="text-xl sm:text-2xl font-bold text-[#1C1C1E] tracking-tight">
+                {rescue.mission_name} · Active Command
               </h1>
             </div>
-            <p className="text-sm font-medium text-[#1E3831] mt-1 font-mono tabular-nums">
+            <p className="text-xs sm:text-sm font-medium text-[#6C6C70] mt-1 font-mono tabular-nums">
               LKP Anchor: {rescue.location_label} ({rescue.last_known_location.lat.toFixed(4)}°N,{' '}
-              {Math.abs(rescue.last_known_location.lon).toFixed(4)}°W) ·{' '}
-              {tacticalTeams.filter((t) => t.speedKmh > 0).length}/{tacticalTeams.length} Units Moving
+              {Math.abs(rescue.last_known_location.lon).toFixed(4)}°W) · Focused Screen{' '}
+              {currentSubScreenIdx + 1} of {SUB_SCREENS.length}
             </p>
           </div>
 
@@ -699,6 +770,72 @@ export const ActiveOperationScreen: React.FC<ActiveOperationScreenProps> = ({
               Close Mission &amp; Audit
             </PrimaryButton>
           </div>
+        </div>
+
+        {/* Dedicated 4-Screen Apple HIG Segmented Control — Spreads Information Across Screens */}
+        <div
+          role="tablist"
+          aria-label="Active Operation Screens"
+          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-1.5 bg-[#E5E5EA]/90 p-1.5 rounded-2xl border border-[#D1D1D6]"
+        >
+          {SUB_SCREENS.map((tab) => {
+            const isSelected = activeSubScreen === tab.id;
+            return (
+              <button
+                key={tab.id}
+                type="button"
+                role="tab"
+                aria-selected={isSelected}
+                onClick={() => setActiveSubScreen(tab.id)}
+                className={`p-3 rounded-xl text-left transition-all flex items-start justify-between gap-2 cursor-pointer ${
+                  isSelected
+                    ? 'bg-white text-[#1C1C1E] shadow-xs border border-black/5'
+                    : 'bg-transparent text-[#3C3C43] hover:bg-white/50'
+                }`}
+              >
+                <div className="flex items-start gap-2.5 min-w-0">
+                  <span
+                    className={`mt-0.5 shrink-0 ${
+                      isSelected ? 'text-[#007AFF]' : 'text-[#6C6C70]'
+                    }`}
+                  >
+                    {tab.icon}
+                  </span>
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-1.5">
+                      <span
+                        className={`font-mono text-[10px] font-semibold ${
+                          isSelected ? 'text-[#007AFF]' : 'text-[#6C6C70]'
+                        }`}
+                      >
+                        SCREEN {tab.num}
+                      </span>
+                    </div>
+                    <div className="font-semibold text-xs sm:text-sm truncate text-[#1C1C1E]">
+                      {tab.label}
+                    </div>
+                    <div className="text-[11px] truncate text-[#6C6C70]">
+                      {tab.subtitle}
+                    </div>
+                  </div>
+                </div>
+
+                {tab.badge && (
+                  <span
+                    className={`font-mono text-[10px] font-semibold px-2 py-0.5 rounded-md shrink-0 ${
+                      tab.badgeAlert
+                        ? 'bg-[#FF3B30] text-white animate-pulse'
+                        : isSelected
+                        ? 'bg-[#007AFF]/12 text-[#007AFF]'
+                        : 'bg-black/5 text-[#3C3C43]'
+                    }`}
+                  >
+                    {tab.badge}
+                  </span>
+                )}
+              </button>
+            );
+          })}
         </div>
 
         {/* Commander Toast Alert */}
@@ -722,494 +859,539 @@ export const ActiveOperationScreen: React.FC<ActiveOperationScreenProps> = ({
           </div>
         )}
 
-        {/* Waypoint Dispatch Mode Banner */}
-        {isDispatchingWaypoint && activeSelectedTeam && (
-          <div className="tactical-card-yellow rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-            <div className="flex items-center gap-2.5 text-sm font-bold text-[#081820]">
-              <Crosshair size={20} className="animate-spin text-[#B45309] shrink-0" />
-              <span>
-                Waypoint Vector Mode Active: Tap any point on the Tactical Map below to dispatch Team{' '}
-                {activeSelectedTeam.callsign} ({activeSelectedTeam.name}).
-              </span>
-            </div>
-            <button
-              type="button"
-              onClick={() => setIsDispatchingWaypoint(false)}
-              className="min-h-[44px] px-4 py-2 rounded-xl bg-[#081820] text-white text-xs font-bold cursor-pointer self-start sm:self-center shrink-0"
-            >
-              Cancel Vector Mode
-            </button>
-          </div>
-        )}
-
-        {/* Evidence Alert Banner if candidate present */}
-        {candidate && (
-          <div className="bg-[#FEF3DD] border border-[#D97706] rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3.5">
-            <div className="flex items-start gap-3.5">
-              <div className="w-11 h-11 hig-app-icon bg-[#D97706] flex items-center justify-center text-white shrink-0">
-                <Camera size={20} />
-              </div>
-              <div>
-                <div className="flex items-center gap-2 flex-wrap">
-                  <span className="font-bold text-base text-[#081820]">
-                    1 Unverified Evidence Candidate ({candidate.id})
-                  </span>
-                  <span className="text-xs font-bold text-[#78350F] bg-white px-2.5 py-0.5 rounded-full border border-[#D97706]">
-                    {candidate.status === 'unverified'
-                      ? 'Awaiting verification'
-                      : 'Marked for ground check'}
+        {/* SUB-SCREEN 01: TACTICAL MAP & LIVE SECTOR BOARD */}
+        {activeSubScreen === 'MAP' && (
+          <div className="space-y-4 animate-in fade-in duration-150">
+            {/* Waypoint Dispatch Mode Banner */}
+            {isDispatchingWaypoint && activeSelectedTeam && (
+              <div className="tactical-card-yellow rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div className="flex items-center gap-2.5 text-sm font-bold text-[#081820]">
+                  <Crosshair size={20} className="animate-spin text-[#B45309] shrink-0" />
+                  <span>
+                    Waypoint Vector Mode Active: Tap any point on the Tactical Map below to dispatch
+                    Team {activeSelectedTeam.callsign} ({activeSelectedTeam.name}).
                   </span>
                 </div>
-                <p className="text-xs sm:text-sm text-[#78350F] font-medium mt-1 font-mono tabular-nums">
-                  Platform: <strong>{candidate.platform_id}</strong> (Frame {candidate.frame_ref}) ·{' '}
-                  {candidate.distance_from_lkp_km} km {candidate.bearing_from_lkp} of Storey Arms
-                </p>
-              </div>
-            </div>
-            <PrimaryButton
-              onClick={onOpenEvidence}
-              className="shrink-0 self-start sm:self-center"
-              icon={<ChevronRight size={18} />}
-            >
-              Review Evidence (08 / 09)
-            </PrimaryButton>
-          </div>
-        )}
-
-        {/* Proximity Alert Indicator */}
-        <ProximityAlertIndicator
-          driftedTeams={driftedTeams}
-          onRevectorTeam={handleRevectorTeam}
-          onExpandSector={handleExpandSector}
-          onSimulateDriftToggle={handleSimulateDriftToggle}
-          isSimulatingDrift={isSimulatingDrift}
-        />
-
-        {/* Live Map Telematics Ribbon & Position Tracking Controller */}
-        <MapTelematicsRibbon
-          teams={tacticalTeams}
-          selectedTeamId={selectedTeamId}
-          onSelectTeam={(teamId) => {
-            setSelectedTeamId(teamId);
-            const tm = tacticalTeams.find((t) => t.id === teamId);
-            if (tm) setMapCenter(tm.position);
-          }}
-          isLiveTracking={isLiveTracking}
-          onToggleLiveTracking={() => setIsLiveTracking((prev) => !prev)}
-          trackingSpeed={trackingSpeed}
-          onChangeTrackingSpeed={setTrackingSpeed}
-          onStepPositionsOnce={handleStepPositionsOnce}
-          onUpdateTeamStatus={handleUpdateTeamStatus}
-          onPingTeamRadio={handlePingTeamRadio}
-          isDispatchingWaypoint={isDispatchingWaypoint}
-          onToggleDispatchWaypoint={() => setIsDispatchingWaypoint((prev) => !prev)}
-          onSimulateDriftToggle={handleSimulateDriftToggle}
-          isSimulatingDrift={isSimulatingDrift}
-          onTriggerUavDetection={handleTriggerUavDetection}
-          onTriggerWeatherFlare={handleTriggerWeatherFlare}
-          onToggleBatteryDrain={() => handleToggleSimulateBatteryDrain('team-alpha')}
-          isSimulatingLowBattery={isSimulatingLowBattery}
-          onExportAuditLog={handleExportAuditLog}
-        />
-
-        {/* Background Area Pre-Cache Status Banner (Map Tiles & Sector Weather) */}
-        <AreaPrecacheBanner rescue={rescue} compact />
-
-        {/* Quick Weather Report & Simulation Widget */}
-        <QuickWeatherWidget
-          weather={weather}
-          onSelectScenario={handleSelectScenario}
-          onUpdateWeather={handleUpdateWeather}
-        />
-
-        {/* Map Overlay Controls Strip */}
-        <MapOverlayControls
-          toggles={layerToggles}
-          onToggle={handleToggleLayer}
-          isCompact={false}
-        />
-
-        {/* Main Grid: Tactical Map & Causality Inspector / Sector Board */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
-          {/* Tactical Map (8 Cols) */}
-          <div
-            className={`${
-              selectedCell && selectedReport ? 'lg:col-span-7 xl:col-span-8' : 'lg:col-span-8'
-            } flex flex-col min-h-[520px]`}
-          >
-            <div className="flex-1 flex flex-col p-4 tactical-card rounded-2xl">
-              <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-3 mb-3.5 border-b border-[#CBD8D4] pb-3.5">
-                <div className="flex items-center gap-2.5 flex-wrap">
-                  <Compass size={19} className="text-[#0B6758]" />
-                  <h2 className="text-base font-bold text-[#081820]">
-                    Tactical Map · GPS Telemetry &amp; Causality Grid
-                  </h2>
-                  <button
-                    type="button"
-                    role="switch"
-                    aria-checked={followSelectedTeam}
-                    onClick={() => setFollowSelectedTeam((prev) => !prev)}
-                    className={`min-h-[40px] px-3.5 py-1.5 rounded-full text-xs font-bold border transition-colors cursor-pointer ${
-                      followSelectedTeam
-                        ? 'bg-[#0B6758] text-white border-[#085446]'
-                        : 'bg-[#F6F9F7] text-[#081820] border-[#B8C9C3] hover:bg-[#E1ECE8]'
-                    }`}
-                    title="Lock map camera onto the currently selected team as it moves"
-                  >
-                    {followSelectedTeam
-                      ? `Following ${activeSelectedTeam?.callsign}`
-                      : 'Follow Selected Unit'}
-                  </button>
-                </div>
-
-                {/* Quick Search & Segmented Status Filter above Map (Apple HIG Text Fields: >= 44pt, 17px font) */}
-                <div className="flex items-center gap-2 flex-wrap">
-                  <div className="relative">
-                    <input
-                      type="search"
-                      value={teamSearchQuery}
-                      onChange={(e) => {
-                        const val = e.target.value;
-                        setTeamSearchQuery(val);
-                        const match = tacticalTeams.find(
-                          (t) =>
-                            t.callsign.toLowerCase() === val.trim().toLowerCase() ||
-                            t.name.toLowerCase() === val.trim().toLowerCase()
-                        );
-                        if (match) {
-                          setSelectedTeamId(match.id);
-                          setMapCenter(match.position);
-                        }
-                      }}
-                      placeholder="Find unit..."
-                      aria-label="Quick find unit on map"
-                      className="w-44 sm:w-52 pl-9 pr-9 py-2 min-h-[44px] bg-[#F6F9F7] border border-[#8BA39B] rounded-xl focus:bg-white text-[#081820]"
-                    />
-                    <Search
-                      size={16}
-                      className="absolute left-3 top-3.5 text-[#1E3831] pointer-events-none"
-                    />
-                    {teamSearchQuery && (
-                      <button
-                        type="button"
-                        onClick={() => setTeamSearchQuery('')}
-                        className="absolute right-0 top-0 min-h-[44px] min-w-[44px] flex items-center justify-center text-[#1E3831] hover:text-[#DC2626] cursor-pointer"
-                        title="Clear search"
-                        aria-label="Clear quick unit search"
-                      >
-                        <X size={16} />
-                      </button>
-                    )}
-                  </div>
-
-                  <div className="flex items-center gap-1.5 text-xs font-mono tabular-nums flex-wrap">
-                    <button
-                      type="button"
-                      onClick={() =>
-                        setTeamStatusFilter(teamStatusFilter === 'MOVING' ? 'ALL' : 'MOVING')
-                      }
-                      className={`min-h-[40px] px-3 py-1.5 rounded-full font-bold border transition-colors cursor-pointer ${
-                        teamStatusFilter === 'MOVING'
-                          ? 'bg-[#0B6758] text-white border-[#085446]'
-                          : 'bg-[#F6F9F7] text-[#081820] border-[#B8C9C3] hover:bg-[#E1ECE8]'
-                      }`}
-                    >
-                      Moving (
-                      {
-                        tacticalTeams.filter(
-                          (t) =>
-                            t.speedKmh > 0 &&
-                            (t.status === 'In progress' || t.status === 'Returning')
-                        ).length
-                      }
-                      )
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() =>
-                        setTeamStatusFilter(
-                          teamStatusFilter === 'STATIONARY' ? 'ALL' : 'STATIONARY'
-                        )
-                      }
-                      className={`min-h-[40px] px-3 py-1.5 rounded-full font-bold border transition-colors cursor-pointer ${
-                        teamStatusFilter === 'STATIONARY'
-                          ? 'bg-[#0B6758] text-white border-[#085446]'
-                          : 'bg-[#F6F9F7] text-[#081820] border-[#B8C9C3] hover:bg-[#E1ECE8]'
-                      }`}
-                    >
-                      Hold (
-                      {
-                        tacticalTeams.filter(
-                          (t) =>
-                            t.speedKmh === 0 ||
-                            t.status === 'Ready' ||
-                            t.status === 'Holding'
-                        ).length
-                      }
-                      )
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() =>
-                        setTeamStatusFilter(
-                          teamStatusFilter === 'LOW_BATTERY' ? 'ALL' : 'LOW_BATTERY'
-                        )
-                      }
-                      className={`min-h-[40px] px-3 py-1.5 rounded-full font-bold border transition-colors cursor-pointer flex items-center gap-1.5 ${
-                        teamStatusFilter === 'LOW_BATTERY'
-                          ? 'bg-[#DC2626] text-white border-[#991B1B]'
-                          : tacticalTeams.some(
-                              (t) =>
-                                (t.batteryPct !== undefined ? t.batteryPct : t.endurancePct) <
-                                20
-                            )
-                          ? 'bg-[#DC2626] text-white border-[#991B1B] animate-pulse'
-                          : 'bg-[#FEF3DD] text-[#78350F] border-[#D97706] hover:bg-[#FDE68A]'
-                      }`}
-                    >
-                      <BatteryWarning size={14} />
-                      <span>
-                        Low Batt (
-                        {
-                          tacticalTeams.filter(
-                            (t) =>
-                              (t.batteryPct !== undefined && t.batteryPct <= 50) ||
-                              t.endurancePct <= 50
-                          ).length
-                        }
-                        )
-                      </span>
-                    </button>
-                  </div>
-                </div>
-              </div>
-
-              <div className="flex-1 min-h-[440px]">
-                <OsmMap
-                  center={mapCenter}
-                  zoom={13}
-                  pin={rescue.last_known_location}
-                  pinLabel={`${rescue.location_label} (LKP)`}
-                  rings={plan?.rings}
-                  regions={plan?.regions}
-                  dataSources={plan?.data_sources}
-                  tacticalTeams={tacticalTeams}
-                  selectedTeamId={selectedTeamId}
-                  onSelectTeam={(team) => {
-                    setSelectedTeamId(team.id);
-                    setMapCenter(team.position);
-                    showToast(
-                      `Focused on Team ${team.callsign} (${
-                        team.telematics?.osGridRef || team.sector
-                      })`
-                    );
-                  }}
-                  isDispatchingWaypoint={isDispatchingWaypoint}
-                  onDispatchWaypoint={handleDispatchWaypoint}
-                  candidates={rescue.evidence_candidates || []}
-                  showSectors={layerToggles.sectors}
-                  layerToggles={layerToggles}
-                  weather={weather}
-                  selectedHexId={selectedCell?.cell_id}
-                  onSelectHex={handleSelectHex}
-                  showLegend={true}
-                  className="h-full min-h-[440px]"
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* Right Column: Cell Causality Inspector OR Live Position & Sector Board */}
-          <div
-            className={`${
-              selectedCell && selectedReport ? 'lg:col-span-5 xl:col-span-4' : 'lg:col-span-4'
-            } space-y-5`}
-          >
-            {selectedCell && selectedReport ? (
-              <CellCausalityInspector
-                cell={selectedCell}
-                report={selectedReport}
-                onClose={() => {
-                  setSelectedCell(null);
-                  setSelectedReport(null);
-                }}
-                onAssignTeam={handleAssignTeamToCell}
-              />
-            ) : (
-              <div className="tactical-card rounded-2xl p-4 sm:p-5 space-y-4">
-                <div className="flex items-center justify-between border-b border-[#CBD8D4] pb-3">
-                  <span className="text-base font-bold text-[#081820] flex items-center gap-2">
-                    <Layers size={18} className="text-[#0B6758]" />
-                    <span>Live Position &amp; Sector Board</span>
-                  </span>
-                  <span className="font-mono text-xs font-bold text-[#064E3B] bg-[#E1ECE8] px-2.5 py-1 rounded-full border border-[#A7C7BE] tabular-nums">
-                    {isLiveTracking ? `LIVE ${trackingSpeed}x` : 'PAUSED'}
-                  </span>
-                </div>
-
-                {/* Apple HIG Lists & Tables: Row >= 44pt, border-bottom: 1px solid var(--separator) */}
-                <div className="divide-y divide-[#CBD8D4] border border-[#CBD8D4] rounded-xl overflow-hidden bg-[#F6F9F7] font-mono text-xs tabular-nums">
-                  {tacticalTeams.map((tm) => {
-                    const isSel = selectedTeamId === tm.id;
-                    const moving =
-                      tm.speedKmh > 0 &&
-                      (tm.status === 'In progress' || tm.status === 'Returning');
-                    const battVal =
-                      tm.batteryPct !== undefined ? tm.batteryPct : tm.endurancePct;
-                    const isBatteryCritical = battVal < 20;
-                    return (
-                      <div
-                        key={tm.id}
-                        onClick={() => {
-                          setSelectedTeamId(tm.id);
-                          setMapCenter(tm.position);
-                        }}
-                        className={`hig-list-row p-3 flex items-center justify-between cursor-pointer transition-colors ${
-                          isBatteryCritical
-                            ? 'bg-[#FEF2F2] text-[#7F1D1D] animate-battery-warning'
-                            : isSel
-                            ? 'bg-[#E1ECE8] text-[#081820]'
-                            : 'bg-white hover:bg-[#EDF2EF] text-[#081820]'
-                        }`}
-                      >
-                        <div className="flex items-center gap-3 min-w-0">
-                          <span
-                            className={`w-2.5 h-2.5 rounded-full shrink-0 ${
-                              tm.status === 'SOS / Assist' || tm.isDrifted || isBatteryCritical
-                                ? 'bg-[#DC2626] animate-ping'
-                                : moving
-                                ? 'bg-[#16A34A]'
-                                : 'bg-[#64748B]'
-                            }`}
-                          />
-                          <div className="min-w-0">
-                            <div className="font-bold text-sm font-sans flex items-center gap-1.5 flex-wrap">
-                              <span className="text-[#081820]">{tm.callsign}</span>
-                              <span className="text-xs font-medium text-[#1E3831]">
-                                · {tm.status}
-                              </span>
-                              <TeamBatteryPill
-                                percentage={battVal}
-                                size="sm"
-                                showLabel={false}
-                              />
-                            </div>
-                            <div className="text-xs text-[#1E3831] mt-0.5">
-                              {tm.telematics?.osGridRef} · {tm.telematics?.altitudeM}m ASL
-                            </div>
-                          </div>
-                        </div>
-
-                        <div className="text-right shrink-0 ml-2">
-                          <div
-                            className={`font-bold text-xs ${
-                              isBatteryCritical
-                                ? 'text-[#DC2626] animate-pulse'
-                                : 'text-[#064E3B]'
-                            }`}
-                          >
-                            {isBatteryCritical
-                              ? `LOW BATT ${battVal}%`
-                              : moving
-                              ? `${tm.telematics?.headingCardinal} ${tm.speedKmh.toFixed(1)} km/h`
-                              : '0.0 km/h'}
-                          </div>
-                          <div className="text-xs text-[#1E3831]">
-                            {tm.position.lat.toFixed(4)}°N, {Math.abs(tm.position.lon).toFixed(4)}°W
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-
-                <div className="p-3.5 bg-[#F6F9F7] text-[#081820] rounded-xl border border-[#CBD8D4] text-xs">
-                  <div className="font-bold text-[#064E3B] flex items-center gap-2 mb-1">
-                    <Compass size={15} />
-                    <span>Map Interaction</span>
-                  </div>
-                  <p className="text-xs text-[#1E3831] leading-relaxed">
-                    Tap any hexagonal cell on the map to inspect weather-terrain causality, or tap{' '}
-                    <strong>Vector on Map</strong> to dispatch a unit to new coordinates.
-                  </p>
-                </div>
+                <button
+                  type="button"
+                  onClick={() => setIsDispatchingWaypoint(false)}
+                  className="min-h-[44px] px-4 py-2 rounded-xl bg-[#081820] text-white text-xs font-bold cursor-pointer self-start sm:self-center shrink-0"
+                >
+                  Cancel Vector Mode
+                </button>
               </div>
             )}
 
-            {/* Operational Anchor & Timeline Card (Apple HIG Lists & Tables: Row >= 44pt) */}
-            <div className="tactical-card rounded-2xl p-4 sm:p-5 space-y-3 text-sm">
-              <div className="flex items-center justify-between border-b border-[#CBD8D4] pb-3">
-                <h2 className="font-bold text-base text-[#081820]">
-                  Operational Anchor &amp; Timeline
-                </h2>
-                <ActivityRing percentage={68} size={36} strokeWidth={4} />
+            {/* Map Overlay Controls Strip */}
+            <MapOverlayControls
+              toggles={layerToggles}
+              onToggle={handleToggleLayer}
+              isCompact={false}
+            />
+
+            {/* Main Grid: Tactical Map & Causality Inspector / Sector Board */}
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
+              {/* Tactical Map (8 Cols) */}
+              <div
+                className={`${
+                  selectedCell && selectedReport ? 'lg:col-span-7 xl:col-span-8' : 'lg:col-span-8'
+                } flex flex-col min-h-[520px]`}
+              >
+                <div className="flex-1 flex flex-col p-4 tactical-card rounded-2xl">
+                  <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-3 mb-3.5 border-b border-[#CBD8D4] pb-3.5">
+                    <div className="flex items-center gap-2.5 flex-wrap">
+                      <Compass size={19} className="text-[#0B6758]" />
+                      <h2 className="text-base font-bold text-[#081820]">
+                        Tactical Map · GPS Telemetry &amp; Causality Grid
+                      </h2>
+                      <button
+                        type="button"
+                        role="switch"
+                        aria-checked={followSelectedTeam}
+                        onClick={() => setFollowSelectedTeam((prev) => !prev)}
+                        className={`min-h-[40px] px-3.5 py-1.5 rounded-full text-xs font-bold border transition-colors cursor-pointer ${
+                          followSelectedTeam
+                            ? 'bg-[#0B6758] text-white border-[#085446]'
+                            : 'bg-[#F6F9F7] text-[#081820] border-[#B8C9C3] hover:bg-[#E1ECE8]'
+                        }`}
+                        title="Lock map camera onto the currently selected team as it moves"
+                      >
+                        {followSelectedTeam
+                          ? `Following ${activeSelectedTeam?.callsign}`
+                          : 'Follow Selected Unit'}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setIsDispatchingWaypoint((prev) => !prev)}
+                        className={`min-h-[40px] px-3.5 py-1.5 rounded-full text-xs font-bold border transition-colors cursor-pointer flex items-center gap-1.5 ${
+                          isDispatchingWaypoint
+                            ? 'bg-[#D97706] text-white border-[#B45309]'
+                            : 'bg-[#F6F9F7] text-[#081820] border-[#B8C9C3] hover:bg-[#E1ECE8]'
+                        }`}
+                      >
+                        <Crosshair size={14} />
+                        <span>
+                          {isDispatchingWaypoint
+                            ? 'Tap Map to Vector'
+                            : `Vector ${activeSelectedTeam?.callsign}`}
+                        </span>
+                      </button>
+                    </div>
+
+                    {/* Quick Search & Segmented Status Filter above Map */}
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <div className="relative">
+                        <input
+                          type="search"
+                          value={teamSearchQuery}
+                          onChange={(e) => {
+                            const val = e.target.value;
+                            setTeamSearchQuery(val);
+                            const match = tacticalTeams.find(
+                              (t) =>
+                                t.callsign.toLowerCase() === val.trim().toLowerCase() ||
+                                t.name.toLowerCase() === val.trim().toLowerCase()
+                            );
+                            if (match) {
+                              setSelectedTeamId(match.id);
+                              setMapCenter(match.position);
+                            }
+                          }}
+                          placeholder="Find unit..."
+                          aria-label="Quick find unit on map"
+                          className="w-40 sm:w-48 pl-9 pr-9 py-2 min-h-[42px] bg-[#F6F9F7] border border-[#8BA39B] rounded-xl focus:bg-white text-[#081820]"
+                        />
+                        <Search
+                          size={16}
+                          className="absolute left-3 top-3 text-[#1E3831] pointer-events-none"
+                        />
+                        {teamSearchQuery && (
+                          <button
+                            type="button"
+                            onClick={() => setTeamSearchQuery('')}
+                            className="absolute right-0 top-0 min-h-[42px] min-w-[42px] flex items-center justify-center text-[#1E3831] hover:text-[#DC2626] cursor-pointer"
+                            title="Clear search"
+                            aria-label="Clear quick unit search"
+                          >
+                            <X size={16} />
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex-1 min-h-[440px]">
+                    <OsmMap
+                      center={mapCenter}
+                      zoom={13}
+                      pin={rescue.last_known_location}
+                      pinLabel={`${rescue.location_label} (LKP)`}
+                      rings={plan?.rings}
+                      regions={plan?.regions}
+                      dataSources={plan?.data_sources}
+                      tacticalTeams={tacticalTeams}
+                      selectedTeamId={selectedTeamId}
+                      onSelectTeam={(team) => {
+                        setSelectedTeamId(team.id);
+                        setMapCenter(team.position);
+                        showToast(
+                          `Focused on Team ${team.callsign} (${
+                            team.telematics?.osGridRef || team.sector
+                          })`
+                        );
+                      }}
+                      isDispatchingWaypoint={isDispatchingWaypoint}
+                      onDispatchWaypoint={handleDispatchWaypoint}
+                      candidates={rescue.evidence_candidates || []}
+                      showSectors={layerToggles.sectors}
+                      layerToggles={layerToggles}
+                      weather={weather}
+                      selectedHexId={selectedCell?.cell_id}
+                      onSelectHex={handleSelectHex}
+                      showLegend={true}
+                      className="h-full min-h-[440px]"
+                    />
+                  </div>
+                </div>
               </div>
-              <div className="divide-y divide-[#CBD8D4] text-xs">
-                <div className="hig-list-row flex items-center justify-between py-2.5">
-                  <span className="text-[#1E3831] font-medium">Subject Profile</span>
-                  <span className="font-mono font-bold text-[#081820]">{rescue.subject_reference}</span>
+
+              {/* Right Column: Cell Causality Inspector OR Live Position & Sector Board */}
+              <div
+                className={`${
+                  selectedCell && selectedReport ? 'lg:col-span-5 xl:col-span-4' : 'lg:col-span-4'
+                } space-y-4`}
+              >
+                {selectedCell && selectedReport ? (
+                  <CellCausalityInspector
+                    cell={selectedCell}
+                    report={selectedReport}
+                    onClose={() => {
+                      setSelectedCell(null);
+                      setSelectedReport(null);
+                    }}
+                    onAssignTeam={handleAssignTeamToCell}
+                  />
+                ) : (
+                  <div className="tactical-card rounded-2xl p-4 sm:p-5 space-y-4">
+                    <div className="flex items-center justify-between border-b border-[#CBD8D4] pb-3">
+                      <span className="text-base font-bold text-[#081820] flex items-center gap-2">
+                        <Layers size={18} className="text-[#0B6758]" />
+                        <span>Live Position &amp; Sector Board</span>
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => setIsLiveTracking((prev) => !prev)}
+                        className="font-mono text-xs font-bold text-[#064E3B] bg-[#E1ECE8] px-2.5 py-1 rounded-full border border-[#A7C7BE] tabular-nums cursor-pointer"
+                      >
+                        {isLiveTracking ? `LIVE ${trackingSpeed}x` : 'PAUSED'}
+                      </button>
+                    </div>
+
+                    <div className="divide-y divide-[#CBD8D4] border border-[#CBD8D4] rounded-xl overflow-hidden bg-[#F6F9F7] font-mono text-xs tabular-nums">
+                      {tacticalTeams.map((tm) => {
+                        const isSel = selectedTeamId === tm.id;
+                        const moving =
+                          tm.speedKmh > 0 &&
+                          (tm.status === 'In progress' || tm.status === 'Returning');
+                        const battVal =
+                          tm.batteryPct !== undefined ? tm.batteryPct : tm.endurancePct;
+                        const isBatteryCritical = battVal < 20;
+                        return (
+                          <div
+                            key={tm.id}
+                            onClick={() => {
+                              setSelectedTeamId(tm.id);
+                              setMapCenter(tm.position);
+                            }}
+                            className={`hig-list-row p-3 flex items-center justify-between cursor-pointer transition-colors ${
+                              isBatteryCritical
+                                ? 'bg-[#FEF2F2] text-[#7F1D1D] animate-battery-warning'
+                                : isSel
+                                ? 'bg-[#E1ECE8] text-[#081820]'
+                                : 'bg-white hover:bg-[#EDF2EF] text-[#081820]'
+                            }`}
+                          >
+                            <div className="flex items-center gap-3 min-w-0">
+                              <span
+                                className={`w-2.5 h-2.5 rounded-full shrink-0 ${
+                                  tm.status === 'SOS / Assist' || tm.isDrifted || isBatteryCritical
+                                    ? 'bg-[#DC2626] animate-ping'
+                                    : moving
+                                    ? 'bg-[#16A34A]'
+                                    : 'bg-[#64748B]'
+                                }`}
+                              />
+                              <div className="min-w-0">
+                                <div className="font-bold text-sm font-sans flex items-center gap-1.5 flex-wrap">
+                                  <span className="text-[#081820]">{tm.callsign}</span>
+                                  <span className="text-xs font-medium text-[#1E3831]">
+                                    · {tm.status}
+                                  </span>
+                                  <TeamBatteryPill
+                                    percentage={battVal}
+                                    size="sm"
+                                    showLabel={false}
+                                  />
+                                </div>
+                                <div className="text-xs text-[#1E3831] mt-0.5">
+                                  {tm.telematics?.osGridRef} · {tm.telematics?.altitudeM}m ASL
+                                </div>
+                              </div>
+                            </div>
+
+                            <div className="text-right shrink-0 ml-2">
+                              <div
+                                className={`font-bold text-xs ${
+                                  isBatteryCritical
+                                    ? 'text-[#DC2626] animate-pulse'
+                                    : 'text-[#064E3B]'
+                                }`}
+                              >
+                                {isBatteryCritical
+                                  ? `LOW BATT ${battVal}%`
+                                  : moving
+                                  ? `${tm.telematics?.headingCardinal} ${tm.speedKmh.toFixed(1)} km/h`
+                                  : '0.0 km/h'}
+                              </div>
+                              <div className="text-xs text-[#1E3831]">
+                                {tm.position.lat.toFixed(4)}°N, {Math.abs(tm.position.lon).toFixed(4)}°W
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+
+                    <div className="pt-1 flex items-center justify-between gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setActiveSubScreen('TEAMS')}
+                        className="w-full min-h-[44px] px-3.5 py-2 rounded-xl bg-[#E8F2FF] text-[#007AFF] hover:bg-[#D6E8FF] border border-[#007AFF]/20 text-xs font-semibold flex items-center justify-center gap-2 cursor-pointer transition-colors"
+                      >
+                        <Radio size={15} className="text-[#007AFF]" />
+                        <span>Open Full Team Telemetry &amp; Battery Controls →</span>
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* SUB-SCREEN 02: UNITS & RADIO TELEMETRY */}
+        {activeSubScreen === 'TEAMS' && (
+          <div className="space-y-5 animate-in fade-in duration-150">
+            {/* Live Map Telematics Ribbon & Position Tracking Controller */}
+            <MapTelematicsRibbon
+              teams={tacticalTeams}
+              selectedTeamId={selectedTeamId}
+              onSelectTeam={(teamId) => {
+                setSelectedTeamId(teamId);
+                const tm = tacticalTeams.find((t) => t.id === teamId);
+                if (tm) setMapCenter(tm.position);
+              }}
+              isLiveTracking={isLiveTracking}
+              onToggleLiveTracking={() => setIsLiveTracking((prev) => !prev)}
+              trackingSpeed={trackingSpeed}
+              onChangeTrackingSpeed={setTrackingSpeed}
+              onStepPositionsOnce={handleStepPositionsOnce}
+              onUpdateTeamStatus={handleUpdateTeamStatus}
+              onPingTeamRadio={handlePingTeamRadio}
+              isDispatchingWaypoint={isDispatchingWaypoint}
+              onToggleDispatchWaypoint={() => {
+                setIsDispatchingWaypoint(true);
+                setActiveSubScreen('MAP');
+                showToast(
+                  `Switched to Tactical Map: Tap any coordinate to vector Team ${activeSelectedTeam?.callsign}.`
+                );
+              }}
+              onSimulateDriftToggle={handleSimulateDriftToggle}
+              isSimulatingDrift={isSimulatingDrift}
+              onTriggerUavDetection={handleTriggerUavDetection}
+              onTriggerWeatherFlare={handleTriggerWeatherFlare}
+              onToggleBatteryDrain={() => handleToggleSimulateBatteryDrain('team-alpha')}
+              isSimulatingLowBattery={isSimulatingLowBattery}
+              onExportAuditLog={handleExportAuditLog}
+            />
+
+            {/* Team Status Summaries Panel with Live Status Switcher, Coordinates, & Telemetry Feed */}
+            <TeamStatusSummaries
+              teams={tacticalTeams}
+              selectedTeamId={selectedTeamId}
+              onSelectTeam={(team) => {
+                setSelectedTeamId(team.id);
+                setMapCenter(team.position);
+                showToast(
+                  `Focused on Team ${team.callsign} (${team.telematics?.osGridRef || team.sector})`
+                );
+              }}
+              onLocateTeam={handleLocateTeam}
+              onUpdateTeamStatus={handleUpdateTeamStatus}
+              onPingTeamRadio={handlePingTeamRadio}
+              onVectorTeamOnMap={(team) => {
+                setSelectedTeamId(team.id);
+                setIsDispatchingWaypoint(true);
+                setActiveSubScreen('MAP');
+                showToast(`Click any point on the Tactical Map to dispatch Team ${team.callsign}.`);
+              }}
+              liveEvents={liveEvents}
+              onToggleBatteryDrain={handleToggleSimulateBatteryDrain}
+              isSimulatingLowBattery={isSimulatingLowBattery}
+              searchQuery={teamSearchQuery}
+              onSearchChange={(q) => {
+                setTeamSearchQuery(q);
+                const match = tacticalTeams.find(
+                  (t) =>
+                    t.callsign.toLowerCase() === q.trim().toLowerCase() ||
+                    t.name.toLowerCase() === q.trim().toLowerCase()
+                );
+                if (match) {
+                  setSelectedTeamId(match.id);
+                  setMapCenter(match.position);
+                }
+              }}
+              statusFilter={teamStatusFilter}
+              onStatusFilterChange={setTeamStatusFilter}
+              typeFilter={teamTypeFilter}
+              onTypeFilterChange={setTeamTypeFilter}
+            />
+          </div>
+        )}
+
+        {/* SUB-SCREEN 03: WEATHER LAB & OFFLINE AREA PRE-CACHE */}
+        {activeSubScreen === 'WEATHER' && (
+          <div className="space-y-5 animate-in fade-in duration-150">
+            {/* Quick Weather Report & Simulation Widget */}
+            <QuickWeatherWidget
+              weather={weather}
+              onSelectScenario={handleSelectScenario}
+              onUpdateWeather={handleUpdateWeather}
+            />
+
+            {/* Expanded Background Area Pre-Cache Status Banner (Map Tiles & Sector Weather) */}
+            <AreaPrecacheBanner rescue={rescue} />
+          </div>
+        )}
+
+        {/* SUB-SCREEN 04: GEOFENCE, EVIDENCE & AUDIT COMMAND */}
+        {activeSubScreen === 'SAFETY' && (
+          <div className="space-y-5 animate-in fade-in duration-150">
+            {/* Proximity Alert Indicator */}
+            <ProximityAlertIndicator
+              driftedTeams={driftedTeams}
+              onRevectorTeam={handleRevectorTeam}
+              onExpandSector={handleExpandSector}
+              onSimulateDriftToggle={handleSimulateDriftToggle}
+              isSimulatingDrift={isSimulatingDrift}
+            />
+
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
+              {/* Evidence Candidate Card */}
+              <div className="lg:col-span-7 space-y-4">
+                {candidate ? (
+                  <div className="bg-[#FEF3DD] border border-[#D97706] rounded-2xl p-5 space-y-4">
+                    <div className="flex items-start gap-3.5">
+                      <div className="w-11 h-11 hig-app-icon bg-[#D97706] flex items-center justify-center text-white shrink-0">
+                        <Camera size={20} />
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="font-bold text-base text-[#081820]">
+                            Unverified Evidence Candidate ({candidate.id})
+                          </span>
+                          <span className="text-xs font-bold text-[#78350F] bg-white px-2.5 py-0.5 rounded-full border border-[#D97706]">
+                            {candidate.status === 'unverified'
+                              ? 'Awaiting verification'
+                              : 'Marked for ground check'}
+                          </span>
+                        </div>
+                        <p className="text-xs sm:text-sm text-[#78350F] font-medium mt-1 font-mono tabular-nums">
+                          Platform: <strong>{candidate.platform_id}</strong> (Frame{' '}
+                          {candidate.frame_ref}) · {candidate.distance_from_lkp_km} km{' '}
+                          {candidate.bearing_from_lkp} of Storey Arms
+                        </p>
+                        <p className="text-xs text-[#78350F] mt-2 leading-relaxed">
+                          {candidate.description}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex flex-wrap items-center justify-end gap-2.5 pt-2 border-t border-[#D97706]/30">
+                      <PrimaryButton
+                        onClick={onOpenEvidence}
+                        icon={<ChevronRight size={18} />}
+                      >
+                        Review Evidence in Step 08
+                      </PrimaryButton>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="tactical-card rounded-2xl p-5 text-sm text-[#1E3831]">
+                    No unverified thermal or optical evidence candidates pending review.
+                  </div>
+                )}
+
+                {/* 2 C.F.R. § 200 Telematics Export Card */}
+                <div className="tactical-card rounded-2xl p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                  <div className="space-y-1">
+                    <span className="font-mono text-xs font-bold uppercase text-[#536878]">
+                      Statutory Record Keeping
+                    </span>
+                    <h3 className="text-base font-bold text-[#081820]">
+                      2 C.F.R. § 200.334 Telematics &amp; Geofence Manifest
+                    </h3>
+                    <p className="text-xs text-[#1E3831]">
+                      Export current team coordinates, battery states, weather snapshot, and radio
+                      check-in packets as a signed JSON manifest.
+                    </p>
+                  </div>
+                  <SecondaryButton
+                    onClick={handleExportAuditLog}
+                    icon={<Download size={16} />}
+                    className="shrink-0"
+                  >
+                    Export JSON Log
+                  </SecondaryButton>
                 </div>
-                <div className="hig-list-row flex items-center justify-between py-2.5">
-                  <span className="text-[#1E3831] font-medium">Incident Commander</span>
-                  <span className="font-mono font-bold text-[#0B6758]">{rescue.commander_reference}</span>
-                </div>
-                <div className="hig-list-row flex items-center justify-between py-2.5">
-                  <span className="text-[#1E3831] font-medium">Active Search Window</span>
-                  <span className="font-mono font-bold text-[#081820] tabular-nums">3.0 hours elapsed</span>
-                </div>
-                <div className="hig-list-row flex items-center justify-between py-2.5">
-                  <span className="text-[#1E3831] font-medium">Terrain Classification</span>
-                  <span className="font-semibold text-[#081820]">{rescue.terrain_type}</span>
-                </div>
-                <div className="hig-list-row flex items-center justify-between py-2.5">
-                  <span className="text-[#1E3831] font-medium">Next Scheduled Radio Poll</span>
-                  <span className="font-mono font-bold text-[#0B6758] tabular-nums">13:00 UTC</span>
+              </div>
+
+              {/* Operational Anchor & Timeline Card */}
+              <div className="lg:col-span-5">
+                <div className="tactical-card rounded-2xl p-5 space-y-3 text-sm h-full">
+                  <div className="flex items-center justify-between border-b border-[#CBD8D4] pb-3">
+                    <h2 className="font-bold text-base text-[#081820]">
+                      Operational Anchor &amp; Timeline
+                    </h2>
+                    <ActivityRing percentage={68} size={36} strokeWidth={4} />
+                  </div>
+                  <div className="divide-y divide-[#CBD8D4] text-xs">
+                    <div className="hig-list-row flex items-center justify-between py-2.5">
+                      <span className="text-[#1E3831] font-medium">Subject Profile</span>
+                      <span className="font-mono font-bold text-[#081820]">
+                        {rescue.subject_reference}
+                      </span>
+                    </div>
+                    <div className="hig-list-row flex items-center justify-between py-2.5">
+                      <span className="text-[#1E3831] font-medium">Incident Commander</span>
+                      <span className="font-mono font-bold text-[#0B6758]">
+                        {rescue.commander_reference}
+                      </span>
+                    </div>
+                    <div className="hig-list-row flex items-center justify-between py-2.5">
+                      <span className="text-[#1E3831] font-medium">Active Search Window</span>
+                      <span className="font-mono font-bold text-[#081820] tabular-nums">
+                        3.0 hours elapsed
+                      </span>
+                    </div>
+                    <div className="hig-list-row flex items-center justify-between py-2.5">
+                      <span className="text-[#1E3831] font-medium">Terrain Classification</span>
+                      <span className="font-semibold text-[#081820]">{rescue.terrain_type}</span>
+                    </div>
+                    <div className="hig-list-row flex items-center justify-between py-2.5">
+                      <span className="text-[#1E3831] font-medium">Next Scheduled Radio Poll</span>
+                      <span className="font-mono font-bold text-[#0B6758] tabular-nums">
+                        13:00 UTC
+                      </span>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
-        </div>
+        )}
 
-        {/* Team Status Summaries Panel with Live Status Switcher, Coordinates, & Telemetry Feed */}
-        <TeamStatusSummaries
-          teams={tacticalTeams}
-          selectedTeamId={selectedTeamId}
-          onSelectTeam={(team) => {
-            setSelectedTeamId(team.id);
-            setMapCenter(team.position);
-            showToast(
-              `Focused on Team ${team.callsign} (${team.telematics?.osGridRef || team.sector})`
-            );
-          }}
-          onLocateTeam={handleLocateTeam}
-          onUpdateTeamStatus={handleUpdateTeamStatus}
-          onPingTeamRadio={handlePingTeamRadio}
-          onVectorTeamOnMap={(team) => {
-            setSelectedTeamId(team.id);
-            setIsDispatchingWaypoint(true);
-            showToast(`Click any point on the Tactical Map to dispatch Team ${team.callsign}.`);
-          }}
-          liveEvents={liveEvents}
-          onToggleBatteryDrain={handleToggleSimulateBatteryDrain}
-          isSimulatingLowBattery={isSimulatingLowBattery}
-          searchQuery={teamSearchQuery}
-          onSearchChange={(q) => {
-            setTeamSearchQuery(q);
-            const match = tacticalTeams.find(
-              (t) =>
-                t.callsign.toLowerCase() === q.trim().toLowerCase() ||
-                t.name.toLowerCase() === q.trim().toLowerCase()
-            );
-            if (match) {
-              setSelectedTeamId(match.id);
-              setMapCenter(match.position);
-            }
-          }}
-          statusFilter={teamStatusFilter}
-          onStatusFilterChange={setTeamStatusFilter}
-          typeFilter={teamTypeFilter}
-          onTypeFilterChange={setTeamTypeFilter}
-        />
+        {/* Bottom Sub-Screen Pager Bar */}
+        <div className="pt-4 border-t border-[#CBD8D4] flex flex-col sm:flex-row items-center justify-between gap-3">
+          <div className="flex items-center gap-2">
+            <SecondaryButton
+              onClick={() => {
+                if (currentSubScreenIdx > 0) {
+                  setActiveSubScreen(SUB_SCREENS[currentSubScreenIdx - 1].id);
+                }
+              }}
+              disabled={currentSubScreenIdx === 0}
+              icon={<ArrowLeft size={16} />}
+            >
+              Previous View
+            </SecondaryButton>
+            <SecondaryButton
+              onClick={() => {
+                if (currentSubScreenIdx < SUB_SCREENS.length - 1) {
+                  setActiveSubScreen(SUB_SCREENS[currentSubScreenIdx + 1].id);
+                }
+              }}
+              disabled={currentSubScreenIdx === SUB_SCREENS.length - 1}
+              icon={<ArrowRight size={16} />}
+            >
+              Next View
+            </SecondaryButton>
+          </div>
+
+          <div className="text-xs font-mono text-[#1E3831]">
+            Active Operation View <strong>0{currentSubScreenIdx + 1}</strong> of{' '}
+            <strong>0{SUB_SCREENS.length}</strong> · {SUB_SCREENS[currentSubScreenIdx].label}
+          </div>
+        </div>
       </div>
     </div>
   );

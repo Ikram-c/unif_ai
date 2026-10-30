@@ -24,7 +24,7 @@ import { settingsStore } from '../data/SettingsStore';
 import { areaPrecacheService, PrecacheSnapshot } from '../core/AreaPrecacheService';
 
 /**
- * AberTech Hexagonal Mountain & Lake Emblem Lockup (Transparent exterior around hexagon)
+ * Apple HIG App Icon Squircle Brand Header (Pure Vector Icon — No Raster/Art Graphics)
  */
 export const AberTechBrand: React.FC<{
   subtitle?: string;
@@ -33,27 +33,28 @@ export const AberTechBrand: React.FC<{
 }> = ({ subtitle = 'SR Portal', className = '', dark = false }) => {
   return (
     <div className={`flex items-center gap-3 ${className}`}>
-      <img
-        src="/assets/aistudio/abertech_hex_logo.svg"
-        alt="AberTech Hexagonal Mountain & Lake Logo"
-        className="w-11 h-11 object-contain bg-transparent select-none shrink-0 drop-shadow-xs"
-      />
+      <div
+        className="w-10 h-10 hig-app-icon bg-[#007AFF] text-white flex items-center justify-center shrink-0 shadow-xs"
+        aria-hidden="true"
+      >
+        <Compass size={22} strokeWidth={2.25} />
+      </div>
       <div className="flex flex-col leading-tight select-none">
         <div className="flex items-center gap-2">
           <span
-            className={`font-serif-editorial font-bold text-lg tracking-wider uppercase ${
-              dark ? 'text-[#E5E4E2]' : 'text-[#0A0A0A]'
+            className={`font-sans font-bold text-base tracking-tight ${
+              dark ? 'text-white' : 'text-[#1C1C1E]'
             }`}
           >
-            ABERTECH
+            AberTech
           </span>
-          <span className="text-[10px] font-mono font-bold uppercase tracking-widest bg-[#536878] text-[#E5E4E2] px-2 py-0.5 rounded-md">
-            FIELD
+          <span className="text-[10px] font-mono font-semibold uppercase tracking-wider bg-[#E8F2FF] text-[#0062CC] px-2 py-0.5 rounded-full border border-[#007AFF]/20">
+            SAR
           </span>
         </div>
         <span
           className={`text-xs font-medium mt-0.5 ${
-            dark ? 'text-[#9FB2C0]' : 'text-[#485865]'
+            dark ? 'text-[#AEAEB2]' : 'text-[#636366]'
           }`}
         >
           {subtitle}
@@ -64,34 +65,21 @@ export const AberTechBrand: React.FC<{
 };
 
 /**
- * Signature Onyx Mountain Horizon Card (IMG_7717 + mountain_png_Original_d683623e.png)
+ * Clean Apple HIG Grouped Card Surface (Replaces legacy mountain graphic card — Zero Art/Graphics)
  */
 export const MountainHorizonCard: React.FC<{
   children: React.ReactNode;
   className?: string;
   onClick?: () => void;
   mountainVariant?: 'clean' | 'valley' | 'woodcut';
-}> = ({ children, className = '', onClick, mountainVariant = 'clean' }) => {
-  const mountainSrc =
-    mountainVariant === 'valley'
-      ? '/assets/aistudio/layout_pre_vector_Original_d625885b.png'
-      : mountainVariant === 'woodcut'
-      ? '/assets/aistudio/mount_overlay_Original_8e3d0a3d.png'
-      : '/assets/aistudio/mountain_png_Original_d683623e.png';
-
+}> = ({ children, className = '', onClick }) => {
   return (
     <div
       onClick={onClick}
-      className={`relative overflow-hidden rounded-2xl bg-[#0A0A0A] text-[#E5E4E2] border border-[#536878]/50 abertech-grain shadow-lg ${
-        onClick ? 'cursor-pointer hover:border-[#E5A996]/70 transition-colors' : ''
+      className={`relative overflow-hidden rounded-2xl bg-white text-[#1C1C1E] border border-[#D1D1D6] shadow-xs ${
+        onClick ? 'cursor-pointer hover:border-[#007AFF] transition-colors' : ''
       } ${className}`}
     >
-      <img
-        src={mountainSrc}
-        alt=""
-        aria-hidden="true"
-        className="pointer-events-none select-none absolute bottom-0 inset-x-0 w-full h-28 sm:h-36 object-cover object-bottom opacity-80"
-      />
       <div className="relative z-10">{children}</div>
     </div>
   );
@@ -111,7 +99,7 @@ export const ActivityRing: React.FC<{
   percentage,
   size = 38,
   strokeWidth = 4,
-  color = '#536878',
+  color = '#007AFF',
   label,
   dark = false,
 }) => {
@@ -135,7 +123,7 @@ export const ActivityRing: React.FC<{
             cy={center}
             r={radius}
             fill="none"
-            stroke={dark ? '#253038' : '#CFCBC4'}
+            stroke={dark ? '#38383A' : '#E5E5EA'}
             strokeWidth={strokeWidth}
           />
           <circle
@@ -154,7 +142,7 @@ export const ActivityRing: React.FC<{
         </svg>
         <span
           className={`absolute text-[10px] font-mono font-bold tabular-nums ${
-            dark ? 'text-[#E5E4E2]' : 'text-[#0A0A0A]'
+            dark ? 'text-white' : 'text-[#1C1C1E]'
           }`}
         >
           {clamped}%
@@ -162,8 +150,8 @@ export const ActivityRing: React.FC<{
       </div>
       {label && (
         <span
-          className={`text-xs font-semibold ${
-            dark ? 'text-[#9FB2C0]' : 'text-[#485865]'
+          className={`text-xs font-medium ${
+            dark ? 'text-[#AEAEB2]' : 'text-[#3A3A3C]'
           }`}
         >
           {label}
@@ -174,7 +162,7 @@ export const ActivityRing: React.FC<{
 };
 
 /**
- * Quick-Toggle Controls for Dynamic Type Scaling & Contrast Presets (Desktop Header / Settings)
+ * Apple HIG Segmented Quick Controls for Dynamic Type Scaling & Appearance
  */
 export const FieldVisibilityQuickControls: React.FC<{ compact?: boolean }> = ({
   compact = false,
@@ -209,27 +197,27 @@ export const FieldVisibilityQuickControls: React.FC<{ compact?: boolean }> = ({
   };
 
   const lightingLabels: Record<FieldLightingCondition, string> = {
-    'daylight-field': 'Alabaster',
-    'poor-light-hivis': 'Hi-Vis',
-    'night-vision': 'Onyx Dark',
+    'daylight-field': 'Light',
+    'poor-light-hivis': 'High Contrast',
+    'night-vision': 'Dark',
   };
 
   return (
     <div className="flex flex-wrap items-center gap-2">
       <div
-        className="inline-flex items-center bg-[#F4F3F1] rounded-full p-0.5 border border-[#C7C6C1]"
+        className="inline-flex items-center bg-[#E5E5EA] rounded-xl p-0.5"
         role="group"
         aria-label="Dynamic Type UI scale"
       >
-        <span className="hidden 2xl:inline-flex items-center gap-1 px-2.5 text-xs font-semibold text-[#485865]">
-          <ZoomIn size={14} className="text-[#536878]" />
-          <span>Scale:</span>
+        <span className="hidden 2xl:inline-flex items-center gap-1 px-2.5 text-xs font-medium text-[#3A3A3C]">
+          <ZoomIn size={14} className="text-[#007AFF]" />
+          <span>Text:</span>
         </span>
         {(
           [
             { id: 'standard', label: '100%', title: 'Standard Dynamic Type' },
-            { id: 'weather-lg', label: '115%', title: 'Foul Weather Dynamic Type' },
-            { id: 'storm-xl', label: '130%', title: 'Large Storm Dynamic Type' },
+            { id: 'weather-lg', label: '115%', title: 'Large Dynamic Type' },
+            { id: 'storm-xl', label: '130%', title: 'Extra Large Dynamic Type' },
           ] as const
         ).map((opt) => {
           const active = (settings.uiScale || 'standard') === opt.id;
@@ -239,10 +227,10 @@ export const FieldVisibilityQuickControls: React.FC<{ compact?: boolean }> = ({
               type="button"
               onClick={() => handleScaleChange(opt.id)}
               title={opt.title}
-              className={`px-2.5 py-1 rounded-full text-xs font-mono font-bold transition-colors cursor-pointer ${
+              className={`px-2.5 py-1 rounded-lg text-xs font-mono font-semibold transition-all cursor-pointer ${
                 active
-                  ? 'bg-[#0A0A0A] text-[#E5E4E2]'
-                  : 'text-[#0A0A0A] hover:bg-[#D7DFE5]'
+                  ? 'bg-white text-[#1C1C1E] shadow-2xs'
+                  : 'text-[#3A3A3C] hover:text-[#1C1C1E]'
               }`}
             >
               {opt.label}
@@ -254,21 +242,21 @@ export const FieldVisibilityQuickControls: React.FC<{ compact?: boolean }> = ({
       <button
         type="button"
         onClick={handleCycleLighting}
-        className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold border transition-colors cursor-pointer ${
+        className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold border transition-colors cursor-pointer ${
           settings.lightingCondition === 'night-vision'
-            ? 'bg-[#0A0A0A] text-[#E5E4E2] border-[#536878]'
+            ? 'bg-[#1C1C1E] text-white border-[#38383A]'
             : settings.lightingCondition === 'poor-light-hivis'
-            ? 'bg-white text-[#0A0A0A] border-[#0A0A0A]'
-            : 'bg-[#F4F3F1] text-[#0A0A0A] border-[#C7C6C1]'
+            ? 'bg-white text-[#1C1C1E] border-[#1C1C1E]'
+            : 'bg-white text-[#1C1C1E] border-[#D1D1D6]'
         }`}
-        title="Cycle contrast mode between Alabaster Daylight, Hi-Vis, and Onyx Dark Mode"
+        title="Switch appearance between Light, High Contrast, and Dark Mode"
       >
         {settings.lightingCondition === 'night-vision' ? (
-          <Moon size={14} className="text-[#E5A996]" />
+          <Moon size={14} className="text-[#0A84FF]" />
         ) : settings.lightingCondition === 'poor-light-hivis' ? (
-          <Eye size={14} className="text-[#536878]" />
+          <Eye size={14} className="text-[#007AFF]" />
         ) : (
-          <Sun size={14} className="text-[#D97706]" />
+          <Sun size={14} className="text-[#FF9500]" />
         )}
         <span>{lightingLabels[settings.lightingCondition || 'daylight-field']}</span>
       </button>
@@ -279,15 +267,15 @@ export const FieldVisibilityQuickControls: React.FC<{ compact?: boolean }> = ({
           role="switch"
           aria-checked={settings.gloveMode !== false}
           onClick={handleToggleGloveMode}
-          className={`hidden 2xl:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold border transition-colors cursor-pointer ${
+          className={`hidden 2xl:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold border transition-colors cursor-pointer ${
             settings.gloveMode
-              ? 'bg-[#D7DFE5] text-[#0A0A0A] border-[#536878]'
-              : 'bg-[#F4F3F1] text-[#485865] border-[#C7C6C1]'
+              ? 'bg-[#E8F2FF] text-[#0062CC] border-[#007AFF]/30'
+              : 'bg-white text-[#3A3A3C] border-[#D1D1D6]'
           }`}
           title="Toggle 44pt+ touch targets for wet screens and gloves"
         >
-          <Hand size={14} className="text-[#536878]" />
-          <span>Glove: {settings.gloveMode ? 'On' : 'Off'}</span>
+          <Hand size={14} className="text-[#007AFF]" />
+          <span>Touch: {settings.gloveMode ? '44pt+' : 'Std'}</span>
         </button>
       )}
     </div>
@@ -295,7 +283,7 @@ export const FieldVisibilityQuickControls: React.FC<{ compact?: boolean }> = ({
 };
 
 /**
- * Top Header Status Bar — Clean pill badges in Onyx, Blue Slate & Alabaster Grey
+ * Apple HIG Top Navigation Status Bar
  */
 export const DualStatusHeader: React.FC<{
   lastSavedUtc?: string;
@@ -321,16 +309,16 @@ export const DualStatusHeader: React.FC<{
   }, []);
 
   return (
-    <div className="flex items-center justify-between gap-2 px-3 sm:px-4 py-2 bg-[#E5E4E2] text-xs">
+    <div className="flex items-center justify-between gap-2 px-3 sm:px-5 py-2 bg-white/95 backdrop-blur-md text-xs">
       <div className="flex items-center gap-2 overflow-x-auto no-scrollbar max-w-full">
         {/* Local Persistence Pill */}
         <div
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#0A0A0A] text-[#E5E4E2] border border-[#536878]/50 font-medium whitespace-nowrap shrink-0"
-          title="Incident metadata and audit records are saved to encrypted local flash."
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#F2F2F7] text-[#1C1C1E] border border-[#D1D1D6] font-medium whitespace-nowrap shrink-0"
+          title="Incident metadata and audit records are saved to local storage."
         >
-          <CheckCircle2 size={14} className="text-[#86EFAC] shrink-0" />
+          <CheckCircle2 size={14} className="text-[#34C759] shrink-0" />
           <span>
-            Device saved ·{' '}
+            Saved locally ·{' '}
             <span className="font-mono font-semibold tabular-nums">{lastSavedUtc}</span>
           </span>
         </div>
@@ -341,8 +329,8 @@ export const DualStatusHeader: React.FC<{
           onClick={onRefresh || (() => rescueRepository.checkHealth())}
           className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full font-medium whitespace-nowrap shrink-0 cursor-pointer transition-colors border ${
             status.state === 'ONLINE'
-              ? 'bg-[#D7DFE5] text-[#0A0A0A] border-[#536878]/40'
-              : 'bg-[#FEF3DD] text-[#9A690B] border-[#D97706]/40 hover:bg-[#FDE68A]'
+              ? 'bg-[#E8F8EE] text-[#15803D] border-[#34C759]/40'
+              : 'bg-[#FFF8E6] text-[#9A690B] border-[#FF9500]/40 hover:bg-[#FEF3C7]'
           }`}
           title="Team radio mesh connection. Tap to check connection."
         >
@@ -350,7 +338,7 @@ export const DualStatusHeader: React.FC<{
           <span>
             {status.state === 'ONLINE'
               ? 'Team link online'
-              : `Team link offline · last ${lastRadioCheckUtc}`}
+              : `Offline mode · last ${lastRadioCheckUtc}`}
           </span>
         </button>
 
@@ -359,8 +347,8 @@ export const DualStatusHeader: React.FC<{
           <div
             className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full font-mono font-semibold whitespace-nowrap shrink-0 border ${
               precache.state === 'PRECACHING'
-                ? 'bg-[#0A0A0A] text-[#E5A996] border-[#E5A996]/60'
-                : 'bg-[#D7DFE5] text-[#0A0A0A] border-[#536878]/50'
+                ? 'bg-[#E8F2FF] text-[#0062CC] border-[#007AFF]/40'
+                : 'bg-[#F2F2F7] text-[#1C1C1E] border-[#D1D1D6]'
             }`}
             title={precache.currentTaskLabel}
           >
@@ -368,13 +356,13 @@ export const DualStatusHeader: React.FC<{
               size={14}
               className={`shrink-0 ${
                 precache.state === 'PRECACHING'
-                  ? 'text-[#E5A996] animate-bounce'
-                  : 'text-[#0B6758]'
+                  ? 'text-[#007AFF] animate-bounce'
+                  : 'text-[#34C759]'
               }`}
             />
             <span>
               {precache.state === 'PRECACHING'
-                ? `Pre-caching area ${precache.progressPct}% (${precache.tilesLoaded}/${precache.tilesTotal} tiles)`
+                ? `Caching area ${precache.progressPct}% (${precache.tilesLoaded}/${precache.tilesTotal} tiles)`
                 : `Area cached · ${precache.tilesLoaded} tiles · ${precache.weatherSectorsLoaded} wx sectors`}
             </span>
           </div>
@@ -384,8 +372,8 @@ export const DualStatusHeader: React.FC<{
       {/* Desktop Dynamic Type & Contrast Controls */}
       <div className="hidden xl:flex items-center gap-2 shrink-0">
         <FieldVisibilityQuickControls compact />
-        <div className="hidden 2xl:flex items-center gap-1.5 text-[#0A0A0A] text-xs font-mono font-semibold bg-[#F4F3F1] px-3 py-1.5 rounded-full border border-[#C7C6C1]">
-          <HardDrive size={14} className="text-[#536878]" />
+        <div className="hidden 2xl:flex items-center gap-1.5 text-[#3A3A3C] text-xs font-mono font-semibold bg-[#F2F2F7] px-3 py-1.5 rounded-xl border border-[#D1D1D6]">
+          <HardDrive size={14} className="text-[#007AFF]" />
           <span>{settingsStore.settings.deviceTag}</span>
         </div>
       </div>
@@ -394,7 +382,7 @@ export const DualStatusHeader: React.FC<{
 };
 
 /**
- * Background Map Tile & Weather Pre-Cache Status Banner
+ * Apple HIG Background Map Tile & Weather Pre-Cache Status Card
  */
 export const AreaPrecacheBanner: React.FC<{
   rescue: Rescue;
@@ -421,10 +409,10 @@ export const AreaPrecacheBanner: React.FC<{
 
   return (
     <div
-      className={`rounded-2xl border p-3.5 sm:p-4 transition-all ${
+      className={`rounded-2xl border p-4 transition-all bg-white text-[#1C1C1E] ${
         isCaching
-          ? 'bg-[#0A0A0A] text-[#E5E4E2] border-[#E5A996]/60 shadow-md'
-          : 'bg-[#F4F3F1] text-[#0A0A0A] border-[#536878]/40'
+          ? 'border-[#007AFF] shadow-sm'
+          : 'border-[#D1D1D6] shadow-2xs'
       } ${className}`}
       role="region"
       aria-label="Search Area Background Pre-Cache Status"
@@ -432,77 +420,55 @@ export const AreaPrecacheBanner: React.FC<{
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div className="flex items-start sm:items-center gap-3 min-w-0">
           <div
-            className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 border ${
+            className={`w-10 h-10 hig-app-icon flex items-center justify-center shrink-0 ${
               isCaching
-                ? 'bg-[#536878]/30 text-[#E5A996] border-[#E5A996]/50'
-                : 'bg-[#0A0A0A] text-[#86EFAC] border-[#536878]/60'
+                ? 'bg-[#E8F2FF] text-[#007AFF]'
+                : 'bg-[#E8F8EE] text-[#15803D]'
             }`}
           >
-            <CloudDownload size={19} className={isCaching ? 'animate-pulse' : ''} />
+            <CloudDownload size={20} className={isCaching ? 'animate-pulse' : ''} />
           </div>
 
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2 flex-wrap">
-              <span className="font-bold text-xs sm:text-sm tracking-tight">
+              <span className="font-semibold text-sm text-[#1C1C1E] tracking-tight">
                 {isCaching
-                  ? 'Background Pre-Caching Search Area (Tiles & Weather)...'
+                  ? 'Downloading Offline Map Tiles & Weather...'
                   : isReady
-                  ? 'Search Area Pre-Cached for Offline Active Operation'
-                  : 'Search Area Pre-Cache Standby'}
+                  ? 'Offline Map & Weather Ready'
+                  : 'Offline Area Cache Standby'}
               </span>
               <span
-                className={`text-[11px] font-mono font-bold px-2.5 py-0.5 rounded-full tabular-nums ${
+                className={`text-xs font-mono font-semibold px-2.5 py-0.5 rounded-full tabular-nums ${
                   isCaching
-                    ? 'bg-[#E5A996] text-[#0A0A0A]'
-                    : 'bg-[#0A0A0A] text-[#86EFAC]'
+                    ? 'bg-[#E8F2FF] text-[#0062CC]'
+                    : 'bg-[#E8F8EE] text-[#15803D]'
                 }`}
               >
                 {snapshot.progressPct}%
               </span>
-              <span
-                className={`text-[11px] font-mono px-2 py-0.5 rounded-md border ${
-                  isCaching
-                    ? 'border-[#536878] text-[#9FB2C0]'
-                    : 'border-[#536878]/30 bg-[#D7DFE5] text-[#0A0A0A]'
-                }`}
-              >
-                Z11–Z14 Topo · {snapshot.cachedAreaKm2} km²
+              <span className="text-xs font-mono px-2 py-0.5 rounded-md bg-[#F2F2F7] text-[#3A3A3C] border border-[#D1D1D6]">
+                Z11–Z14 · {snapshot.cachedAreaKm2} km²
               </span>
             </div>
 
-            <p
-              className={`text-xs mt-1 font-mono truncate ${
-                isCaching ? 'text-[#9FB2C0]' : 'text-[#485865]'
-              }`}
-            >
+            <p className="text-xs mt-1 text-[#636366] truncate">
               {snapshot.currentTaskLabel}
             </p>
           </div>
         </div>
 
-        <div className="flex items-center gap-3 shrink-0 self-end sm:self-center">
+        <div className="flex items-center gap-2.5 shrink-0 self-end sm:self-center">
           {!compact && (
-            <div className="hidden md:flex items-center gap-3 text-xs font-mono tabular-nums">
-              <div
-                className={`px-2.5 py-1 rounded-lg border ${
-                  isCaching
-                    ? 'bg-[#12161B] border-[#536878]/50 text-[#E5E4E2]'
-                    : 'bg-white border-[#C7C6C1] text-[#0A0A0A]'
-                }`}
-              >
-                <span className="opacity-70">Tiles: </span>
+            <div className="hidden md:flex items-center gap-2 text-xs font-mono tabular-nums">
+              <div className="px-2.5 py-1 rounded-lg bg-[#F2F2F7] border border-[#D1D1D6] text-[#1C1C1E]">
+                <span className="text-[#636366]">Tiles: </span>
                 <strong>
                   {snapshot.tilesLoaded}/{snapshot.tilesTotal || 48}
                 </strong>
               </div>
-              <div
-                className={`px-2.5 py-1 rounded-lg border ${
-                  isCaching
-                    ? 'bg-[#12161B] border-[#536878]/50 text-[#E5E4E2]'
-                    : 'bg-white border-[#C7C6C1] text-[#0A0A0A]'
-                }`}
-              >
-                <span className="opacity-70">Wx Sectors: </span>
+              <div className="px-2.5 py-1 rounded-lg bg-[#F2F2F7] border border-[#D1D1D6] text-[#1C1C1E]">
+                <span className="text-[#636366]">Weather: </span>
                 <strong>
                   {snapshot.weatherSectorsLoaded}/{snapshot.weatherSectorsTotal || 18}
                 </strong>
@@ -514,24 +480,19 @@ export const AreaPrecacheBanner: React.FC<{
             type="button"
             onClick={handleForceResync}
             disabled={isCaching}
-            className={`min-h-[40px] px-3 py-1.5 rounded-full text-xs font-bold inline-flex items-center gap-1.5 border transition-colors cursor-pointer disabled:opacity-50 ${
-              isCaching
-                ? 'bg-[#536878]/40 text-[#E5E4E2] border-[#536878]'
-                : 'bg-[#0A0A0A] text-[#E5E4E2] border-[#536878] hover:bg-[#536878]'
-            }`}
-            title="Re-run background pre-caching of search area map tiles and micro-weather sectors"
+            className="min-h-[40px] px-3.5 py-1.5 rounded-xl text-xs font-semibold inline-flex items-center gap-1.5 bg-[#F2F2F7] hover:bg-[#E5E5EA] text-[#007AFF] border border-[#D1D1D6] transition-colors cursor-pointer disabled:opacity-50"
+            title="Refresh offline map tiles and micro-weather sectors"
           >
-            <RefreshCw size={13} className={isCaching ? 'animate-spin' : ''} />
-            <span>{isCaching ? 'Caching...' : 'Sync Area Cache'}</span>
+            <RefreshCw size={14} className={isCaching ? 'animate-spin' : ''} />
+            <span>{isCaching ? 'Syncing...' : 'Refresh Cache'}</span>
           </button>
         </div>
       </div>
 
-      {/* Progress Bar when actively pre-caching */}
       {isCaching && (
-        <div className="mt-3 w-full h-1.5 bg-[#1E262E] rounded-full overflow-hidden">
+        <div className="mt-3 w-full h-1.5 bg-[#E5E5EA] rounded-full overflow-hidden">
           <div
-            className="h-full bg-[#E5A996] transition-all duration-300 rounded-full"
+            className="h-full bg-[#007AFF] transition-all duration-300 rounded-full"
             style={{ width: `${snapshot.progressPct}%` }}
           />
         </div>
@@ -541,7 +502,7 @@ export const AreaPrecacheBanner: React.FC<{
 };
 
 /**
- * Step Breadcrumb Bar e.g. "01 / 09 · FIELD WORKSPACE"
+ * Apple HIG Navigation Subheader Bar
  */
 export const StepHeader: React.FC<{
   stepNumber: string;
@@ -549,14 +510,16 @@ export const StepHeader: React.FC<{
   missionRef?: string;
 }> = ({ stepNumber, stepTitle, missionRef }) => {
   return (
-    <div className="shrink-0 flex items-center justify-between px-4 sm:px-6 py-2.5 bg-[#0A0A0A] text-[#E5E4E2] border-b border-[#536878]/40">
-      <div className="flex items-center gap-2.5 text-xs font-mono font-bold tracking-wider">
-        <span className="text-[#E5A996] tabular-nums">{stepNumber}</span>
-        <span className="text-[#536878]">·</span>
-        <span className="uppercase tracking-widest text-[#E5E4E2]">{stepTitle}</span>
+    <div className="shrink-0 flex items-center justify-between px-4 sm:px-6 py-2.5 bg-white/95 backdrop-blur-md text-[#1C1C1E] border-b border-[#D1D1D6]">
+      <div className="flex items-center gap-2 text-xs font-semibold tracking-tight">
+        <span className="font-mono font-bold text-[#007AFF] bg-[#E8F2FF] px-2 py-0.5 rounded-md tabular-nums">
+          {stepNumber}
+        </span>
+        <span className="text-[#636366]">·</span>
+        <span className="text-[#3A3A3C] font-semibold">{stepTitle}</span>
       </div>
       {missionRef && (
-        <span className="text-xs font-mono font-bold bg-[#536878] text-[#E5E4E2] px-2.5 py-0.5 rounded-md tabular-nums">
+        <span className="text-xs font-mono font-semibold bg-[#F2F2F7] text-[#1C1C1E] border border-[#D1D1D6] px-2.5 py-0.5 rounded-md tabular-nums">
           {missionRef}
         </span>
       )}
@@ -565,21 +528,20 @@ export const StepHeader: React.FC<{
 };
 
 /**
- * Notice and Callout Banners (CR >= 4.5:1)
+ * Apple HIG Callout Banners (CR >= 4.5:1)
  */
 export const PlanningEstimateNotice: React.FC<{ className?: string }> = ({
   className = '',
 }) => (
   <div
-    className={`bg-[#FEF3DD] border border-[#F3D794] text-[#78350F] rounded-2xl p-4 flex items-start gap-3 ${className}`}
+    className={`bg-[#FFF8E6] border border-[#F59E0B]/40 text-[#78350F] rounded-2xl p-4 flex items-start gap-3 ${className}`}
   >
-    <AlertTriangle size={20} className="shrink-0 mt-0.5 text-[#B45309]" />
+    <AlertTriangle size={20} className="shrink-0 mt-0.5 text-[#D97706]" />
     <div className="text-xs sm:text-sm leading-relaxed">
-      <span className="font-bold block mb-0.5 text-[#0A0A0A]">
-        Planning estimate, not evidence
+      <span className="font-semibold block mb-0.5 text-[#1C1C1E]">
+        Planning Estimate
       </span>
-      Probability contours model kinematic reach under the recorded assumptions. They do not
-      confirm subject presence in any sector.
+      Probability contours model kinematic reach under the recorded assumptions. They guide team tasking and do not confirm subject location.
     </div>
   </div>
 );
@@ -588,34 +550,32 @@ export const PrivateByDefaultNotice: React.FC<{ className?: string }> = ({
   className = '',
 }) => (
   <div
-    className={`bg-[#F4F3F1] border border-[#C7C6C1] text-[#0A0A0A] rounded-2xl p-4 flex items-start gap-3 ${className}`}
+    className={`bg-white border border-[#D1D1D6] text-[#1C1C1E] rounded-2xl p-4 flex items-start gap-3 ${className}`}
   >
-    <Info size={20} className="shrink-0 mt-0.5 text-[#536878]" />
-    <div className="text-xs sm:text-sm leading-relaxed text-[#485865]">
-      <span className="font-bold text-[#0A0A0A] block mb-0.5">Private by default</span>
-      This device does not broadcast incident metadata until an authorized team or gateway link
-      is confirmed. Records are retained locally under 2 C.F.R. § 200.334 rules.
+    <Info size={20} className="shrink-0 mt-0.5 text-[#007AFF]" />
+    <div className="text-xs sm:text-sm leading-relaxed text-[#3A3A3C]">
+      <span className="font-semibold text-[#1C1C1E] block mb-0.5">Private by Default</span>
+      Incident data remains stored on your device until you explicitly sync with an authorized team gateway.
     </div>
   </div>
 );
 
 export const ComplianceNotice: React.FC<{ className?: string }> = ({ className = '' }) => (
   <div
-    className={`bg-[#D7DFE5] border border-[#536878]/40 text-[#0A0A0A] rounded-2xl p-4 flex items-start gap-3 ${className}`}
+    className={`bg-[#E8F2FF] border border-[#007AFF]/25 text-[#1C1C1E] rounded-2xl p-4 flex items-start gap-3 ${className}`}
   >
-    <ShieldAlert size={20} className="shrink-0 mt-0.5 text-[#536878]" />
-    <div className="text-xs sm:text-sm leading-relaxed">
-      <span className="font-bold block mb-0.5 text-[#0A0A0A]">
+    <ShieldAlert size={20} className="shrink-0 mt-0.5 text-[#007AFF]" />
+    <div className="text-xs sm:text-sm leading-relaxed text-[#3A3A3C]">
+      <span className="font-semibold block mb-0.5 text-[#1C1C1E]">
         2 C.F.R. § 200.334 Audit Retention
       </span>
-      Retained on device for 3 years to ensure FEMA AFG and statutory grant compliance. Local
-      cryptographic seal generated upon mission closure.
+      Records are retained locally for 3 years for statutory compliance, with a cryptographic seal generated when the mission closes.
     </div>
   </div>
 );
 
 /**
- * Standard Card Component — Clean Single-Elevation Surface
+ * Standard Apple HIG Grouped Card Component
  */
 export const Card: React.FC<{
   children: React.ReactNode;
@@ -625,7 +585,7 @@ export const Card: React.FC<{
   <div
     onClick={onClick}
     className={`tactical-card rounded-2xl p-4 sm:p-5 ${
-      onClick ? 'cursor-pointer hover:border-[#536878] transition-colors' : ''
+      onClick ? 'cursor-pointer hover:border-[#007AFF] transition-colors' : ''
     } ${className}`}
   >
     {children}
@@ -633,7 +593,7 @@ export const Card: React.FC<{
 );
 
 /**
- * Status Badge — High Contrast Semantic States
+ * Apple HIG Semantic Status Pill Badge
  */
 export const StatusBadge: React.FC<{
   type: 'green' | 'amber' | 'red' | 'neutral';
@@ -642,10 +602,10 @@ export const StatusBadge: React.FC<{
   className?: string;
 }> = ({ type, label, icon, className = '' }) => {
   const styles = {
-    green: 'bg-[#0A0A0A] text-[#86EFAC] border border-[#536878]/50',
-    amber: 'bg-[#FEF3DD] text-[#9A690B] border border-[#D97706]/40',
-    red: 'bg-[#FEE2E2] text-[#991B1B] border border-[#E11D48]/40',
-    neutral: 'bg-[#D7DFE5] text-[#0A0A0A] border border-[#536878]/30',
+    green: 'bg-[#E8F8EE] text-[#15803D] border border-[#34C759]/40',
+    amber: 'bg-[#FFF8E6] text-[#9A690B] border border-[#FF9500]/40',
+    red: 'bg-[#FEE2E2] text-[#991B1B] border border-[#FF3B30]/40',
+    neutral: 'bg-[#F2F2F7] text-[#3A3A3C] border border-[#D1D1D6]',
   };
 
   return (
@@ -659,7 +619,7 @@ export const StatusBadge: React.FC<{
 };
 
 /**
- * Primary & Secondary Buttons — Apple HIG >= 44x44pt Touch Targets, Onyx & Blue Slate
+ * Apple HIG Primary & Secondary Buttons (>= 44x44pt Touch Targets, Filled System Blue & Secondary Gray)
  */
 export const PrimaryButton: React.FC<{
   children: React.ReactNode;
@@ -673,7 +633,7 @@ export const PrimaryButton: React.FC<{
     type={type}
     onClick={onClick}
     disabled={disabled}
-    className={`inline-flex items-center justify-center gap-2 px-5 py-2.5 min-h-[44px] min-w-[44px] rounded-full font-bold text-sm text-[#E5E4E2] bg-[#0A0A0A] hover:bg-[#536878] border border-[#536878]/60 active:scale-[0.99] disabled:opacity-50 disabled:cursor-not-allowed shadow-2xs transition-all cursor-pointer ${className}`}
+    className={`inline-flex items-center justify-center gap-2 px-5 py-2.5 min-h-[44px] min-w-[44px] rounded-xl font-semibold text-sm text-white bg-[#007AFF] hover:bg-[#0062CC] active:scale-[0.99] disabled:opacity-50 disabled:cursor-not-allowed shadow-2xs transition-all cursor-pointer ${className}`}
   >
     {icon}
     <span>{children}</span>
@@ -692,7 +652,7 @@ export const SecondaryButton: React.FC<{
     type={type}
     onClick={onClick}
     disabled={disabled}
-    className={`inline-flex items-center justify-center gap-2 px-4 py-2.5 min-h-[44px] min-w-[44px] rounded-full font-bold text-sm text-[#0A0A0A] bg-[#F4F3F1] border border-[#536878]/50 hover:bg-[#D7DFE5] active:scale-[0.99] disabled:opacity-50 disabled:cursor-not-allowed shadow-2xs transition-all cursor-pointer ${className}`}
+    className={`inline-flex items-center justify-center gap-2 px-4 py-2.5 min-h-[44px] min-w-[44px] rounded-xl font-semibold text-sm text-[#007AFF] bg-[#E8F2FF] hover:bg-[#D6E8FF] border border-[#007AFF]/20 active:scale-[0.99] disabled:opacity-50 disabled:cursor-not-allowed transition-all cursor-pointer ${className}`}
   >
     {icon}
     <span>{children}</span>
@@ -700,7 +660,7 @@ export const SecondaryButton: React.FC<{
 );
 
 /**
- * Mobile Bottom Tab Bar — Onyx & Alabaster Tab Bar (Missions | Tactical | Evidence | Audit)
+ * Apple HIG iOS/iPadOS Translucent Bottom Tab Bar (Missions | Tactical | Evidence | Audit)
  */
 export const MobileBottomNav: React.FC<{
   currentStep: number;
@@ -716,11 +676,11 @@ export const MobileBottomNav: React.FC<{
   return (
     <nav
       aria-label="Primary Bottom Navigation"
-      className="lg:hidden shrink-0 bg-[#0A0A0A] border-t border-[#536878]/50 px-2 pt-1.5 hig-tab-bar flex items-center justify-around z-30"
+      className="lg:hidden shrink-0 bg-white/95 backdrop-blur-md border-t border-[#D1D1D6] px-2 pt-1.5 hig-tab-bar flex items-center justify-around z-30"
     >
       {items.map((item) => {
         const isActive =
-          (item.step === 1 && currentStep <= 6) || currentStep === item.step;
+          (item.step === 1 && currentStep >= 1 && currentStep <= 6) || currentStep === item.step;
         return (
           <button
             key={item.label}
@@ -728,8 +688,8 @@ export const MobileBottomNav: React.FC<{
             onClick={() => onNavigateStep(item.step)}
             className={`flex flex-col items-center justify-center gap-1 py-1.5 px-4 min-h-[48px] min-w-[68px] rounded-xl text-xs transition-colors cursor-pointer ${
               isActive
-                ? 'text-[#E5A996] bg-[#536878]/25 font-bold'
-                : 'text-[#E5E4E2]/70 font-medium hover:text-[#E5E4E2]'
+                ? 'text-[#007AFF] font-semibold'
+                : 'text-[#636366] font-medium hover:text-[#1C1C1E]'
             }`}
           >
             {item.icon}

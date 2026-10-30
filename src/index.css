@@ -1,36 +1,50 @@
 @import "tailwindcss";
 
 :root {
-  /* Core Palette from IMG_7788 & AberTech Design System */
-  --color-alabaster: #E5E4E2;
-  --color-alabaster-light: #F2F1EF;
-  --color-onyx: #0A0A0A;
-  --color-onyx-elevated: #12161A;
-  --color-blue-slate: #536878;
-  --color-blue-slate-dark: #3B4C59;
-  --color-blue-slate-tint: #DCE3E8;
-  --color-coral-editorial: #E5A996;
+  /* Apple Human Interface Guidelines (HIG) System Tokens */
+  --hig-bg-grouped: #F2F2F7;
+  --hig-bg-elevated: #FFFFFF;
+  --hig-bg-secondary: #E5E5EA;
+  --hig-label-primary: #1C1C1E;
+  --hig-label-secondary: #3A3A3C;
+  --hig-label-tertiary: #636366;
+  --hig-separator: #D1D1D6;
+  --hig-blue: #007AFF;
+  --hig-blue-hover: #0062CC;
+  --hig-green: #34C759;
+  --hig-orange: #FF9500;
+  --hig-red: #FF3B30;
+  --hig-teal: #0B6758;
 
-  /* Semantic & Legacy Tokens */
-  --color-ink: #0A0A0A;
-  --color-forest-deep: #0A0A0A;
-  --color-forest-mid: #536878;
-  --color-phosphor: #86EFAC;
-  --color-phosphor-light: #E5E4E2;
-  --color-signal-yellow: #FACC15;
+  /* Compatibility Tokens */
+  --color-alabaster: #F2F2F7;
+  --color-alabaster-light: #FFFFFF;
+  --color-onyx: #1C1C1E;
+  --color-onyx-elevated: #2C2C2E;
+  --color-blue-slate: #007AFF;
+  --color-blue-slate-dark: #0062CC;
+  --color-blue-slate-tint: #E8F2FF;
+  --color-coral-editorial: #007AFF;
+
+  --color-ink: #1C1C1E;
+  --color-forest-deep: #1C1C1E;
+  --color-forest-mid: #007AFF;
+  --color-phosphor: #34C759;
+  --color-phosphor-light: #F2F2F7;
+  --color-signal-yellow: #FFCC00;
   --color-amber: #D97706;
-  --color-danger: #E11D48;
-  --separator: #CFCBC4;
-  --surface-canvas: #E5E4E2;
-  --surface-card: #F5F4F2;
-  --text-primary: #0A0A0A;
-  --text-secondary: #485865;
+  --color-danger: #FF3B30;
+  --separator: #D1D1D6;
+  --surface-canvas: #F2F2F7;
+  --surface-card: #FFFFFF;
+  --text-primary: #1C1C1E;
+  --text-secondary: #3A3A3C;
   font-size: 16px;
 }
 
 /* ==========================================================================
-   APPLE HIG DYNAMIC TYPE & FOUL-WEATHER SCALING ENGINE
-   Supports fluid scaling while preserving mobile layout integrity
+   APPLE HIG DYNAMIC TYPE SCALING ENGINE
+   Supports fluid scaling while preserving layout hierarchy
    ========================================================================== */
 html[data-ui-scale="standard"],
 html:not([data-ui-scale]) {
@@ -46,24 +60,23 @@ html[data-ui-scale="storm-xl"] {
 }
 
 /* ==========================================================================
-   TYPOGRAPHY SYSTEM (2+1 Font Rule: Fraunces + Plus Jakarta Sans + JetBrains Mono)
+   APPLE HIG TYPOGRAPHY SYSTEM (SF Pro / System Sans + Monospace Numerals)
+   No decorative serif italics — pure clean system typography
    ========================================================================== */
-.font-serif-editorial {
-  font-family: 'Fraunces', Georgia, Cambria, 'Times New Roman', Times, serif;
-}
-
+.font-serif-editorial,
 .font-sans {
-  font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Plus Jakarta Sans', sans-serif;
+  font-style: normal;
 }
 
 .font-mono,
 .tabular-nums {
-  font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-family: 'SF Mono', 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
   font-variant-numeric: tabular-nums;
 }
 
 /* ==========================================================================
-   APPLE HIG CORE ACCESSIBILITY & INTERACTION RULES
+   APPLE HIG CORE ACCESSIBILITY, SAFE AREAS & INTERACTION RULES
    ========================================================================== */
 html,
 body,
@@ -76,7 +89,7 @@ body,
 body {
   background-color: var(--surface-canvas);
   color: var(--text-primary);
-  font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Plus Jakarta Sans', sans-serif;
   font-size: 1rem;
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
@@ -84,7 +97,6 @@ body {
   touch-action: pan-y pinch-zoom;
 }
 
-/* Ensure predictable scroll views without scroll chaining */
 main,
 .overflow-y-auto,
 .overflow-x-auto,
@@ -110,6 +122,54 @@ main,
   border-radius: 22.5%;
 }
 
+/* Apple HIG Segmented Control */
+.hig-segmented-control {
+  display: flex;
+  align-items: center;
+  background-color: #E5E5EA;
+  padding: 3px;
+  border-radius: 12px;
+  gap: 3px;
+}
+
+.hig-segment-btn {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  min-height: 38px;
+  padding: 6px 14px;
+  border-radius: 9px;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: #3A3A3C;
+  transition: all 150ms ease;
+  cursor: pointer;
+}
+
+.hig-segment-btn[aria-selected="true"],
+.hig-segment-btn.active,
+.hig-segment-btn-active {
+  background-color: #FFFFFF;
+  color: #1C1C1E;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.06);
+}
+
+.hig-segment-btn-inactive:hover {
+  background-color: rgba(255, 255, 255, 0.45);
+  color: #1C1C1E;
+}
+
+/* Apple HIG Inset Grouped List */
+.hig-inset-group {
+  background-color: #FFFFFF;
+  border-radius: 16px;
+  border: 1px solid rgba(60, 60, 67, 0.12);
+  overflow: hidden;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+}
+
 /* Apple HIG Text Fields: Height >= 44pt, font-size >= 16px, appearance: none */
 input[type="text"],
 input[type="search"],
@@ -127,7 +187,7 @@ textarea {
 }
 
 select {
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%230A0A0A' stroke-width='2.25' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%231C1C1E' stroke-width='2.25' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: right 0.75rem center;
   background-size: 16px 16px;
@@ -143,121 +203,73 @@ select {
   border-bottom: none;
 }
 
-/* High-visibility keyboard & touch focus ring */
+/* Apple System Blue Focus Ring */
 button:focus-visible,
 select:focus-visible,
 input:focus-visible,
 textarea:focus-visible {
-  outline: 2.5px solid #536878 !important;
+  outline: 2.5px solid #007AFF !important;
   outline-offset: 2px !important;
 }
 
 /* ==========================================================================
-   ABERTECH SIGNATURE VISUAL SURFACES (IMG_7788, IMG_9083, IMG_7717, IMG_7700)
+   CLEAN APPLE HIG SURFACES (No grain, no dither, no background art)
    ========================================================================== */
-
-/* Subtle Film Grain Texture from IMG_9083 */
-.abertech-grain {
-  background-image: radial-gradient(rgba(229, 228, 226, 0.07) 1px, transparent 0);
-  background-size: 12px 12px;
+.abertech-grain,
+.bg-dither-green,
+.bg-dither-light,
+.bg-dither-dark {
+  background-image: none !important;
 }
 
-/* Onyx + Blue Slate Card with Mountain Horizon Option (IMG_7717) */
-.onyx-card {
-  background-color: #0A0A0A;
-  color: #E5E4E2;
-  border: 1px solid rgba(83, 104, 120, 0.45);
-  box-shadow: 0 8px 24px rgba(10, 10, 10, 0.22);
-}
-
-/* Underground Glow Spec Box (IMG_7700) */
+.onyx-card,
 .spec-glow-box {
-  background-color: #0A0A0A;
-  color: #E5E4E2;
-  border: 1px solid rgba(229, 228, 226, 0.22);
+  background-color: #FFFFFF;
+  color: #1C1C1E;
+  border: 1px solid #D1D1D6;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
 }
 
-/* Harmonize legacy green/mint surface utility classes with Alabaster Grey (#E5E4E2), Onyx (#0A0A0A), & Blue Slate (#536878) */
+/* Harmonize legacy canvas backgrounds to Apple HIG System Grouped Background (#F2F2F7) */
 .bg-\[\#F4F7F5\],
 .bg-\[\#EDF1EE\],
 .bg-\[\#F4F6F5\],
-.bg-\[\#F6F9F7\] {
-  background-color: #E5E4E2 !important;
+.bg-\[\#F6F9F7\],
+.bg-\[\#E5E4E2\] {
+  background-color: #F2F2F7 !important;
 }
 
-.bg-\[\#E1ECE8\],
-.bg-\[\#EDF2EF\] {
-  background-color: #D7DFE5 !important;
-}
-
-.text-\[\#0B6758\],
-.text-\[\#064E3B\] {
-  color: #3B4F5E !important;
-}
-
-.bg-\[\#0B6758\] {
-  background-color: #536878 !important;
-}
-.hover\:bg-\[\#085446\]:hover,
-.hover\:bg-\[\#07483D\]:hover {
-  background-color: #3D4E5B !important;
-}
-
-.text-\[\#1C2E2A\],
-.text-\[\#081820\],
-.text-\[\#0D1F1A\] {
-  color: #0A0A0A !important;
-}
-
-.text-\[\#5A706A\],
-.text-\[\#4A635D\],
-.text-\[\#1E3831\] {
-  color: #465866 !important;
+.bg-\[\#F4F3F1\] {
+  background-color: #FFFFFF !important;
 }
 
 .border-\[\#DCE5E1\],
 .border-\[\#E2E8E5\],
 .border-\[\#CBD8D4\],
 .border-\[\#B8C9C3\],
-.border-\[\#A7C7BE\] {
-  border-color: #C7C6C1 !important;
+.border-\[\#A7C7BE\],
+.border-\[\#C7C6C1\] {
+  border-color: #D1D1D6 !important;
 }
 
-/* Subtle Tactical Surface Patterns */
-.bg-dither-green {
-  background-color: #0A0A0A;
-  background-image: radial-gradient(rgba(83, 104, 120, 0.35) 1px, transparent 1px);
-  background-size: 8px 8px;
-}
-
-.bg-dither-light {
-  background-color: #E5E4E2;
-}
-
-.bg-dither-dark {
-  background-color: #0A0A0A;
-  background-image: radial-gradient(rgba(229, 228, 226, 0.08) 1px, transparent 1px);
-  background-size: 14px 14px;
-}
-
-/* Clean, Accessible Card Surfaces (Alabaster Light Card on Alabaster Grey Canvas) */
+/* Apple HIG Grouped Card Surfaces */
 .tactical-card {
-  background-color: #F4F3F1;
-  border: 1px solid #C8C6C0;
-  box-shadow: 0 1px 3px rgba(10, 10, 10, 0.05);
+  background-color: #FFFFFF;
+  border: 1px solid rgba(60, 60, 67, 0.14);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
 }
 
 .tactical-card-sm {
-  background-color: #F4F3F1;
-  border: 1px solid #D0CECA;
-  box-shadow: 0 1px 2px rgba(10, 10, 10, 0.04);
+  background-color: #FFFFFF;
+  border: 1px solid rgba(60, 60, 67, 0.12);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
 }
 
 .tactical-card-yellow {
-  background-color: #FEF9C3;
-  color: #0A0A0A;
-  border: 1.5px solid #CA8A04;
-  box-shadow: 0 2px 4px rgba(10, 10, 10, 0.06);
+  background-color: #FFFBEB;
+  color: #1C1C1E;
+  border: 1.5px solid #F59E0B;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 }
 
 /* ==========================================================================
@@ -277,23 +289,23 @@ html[data-glove-mode="true"] input[type="range"] {
 }
 
 /* ==========================================================================
-   POOR LIGHT HIGH-CONTRAST & NIGHT VISION LIGHTING MODES (CR >= 4.5:1)
+   APPLE HIG INCREASED CONTRAST & DARK MODE (CR >= 4.5:1)
    ========================================================================== */
 html[data-lighting="poor-light-hivis"] .tactical-card {
   background-color: #FFFFFF !important;
-  border: 1.5px solid #0A0A0A !important;
-  box-shadow: 0 2px 6px rgba(10, 10, 10, 0.1) !important;
+  border: 1.5px solid #1C1C1E !important;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08) !important;
 }
 
 html[data-lighting="poor-light-hivis"] .tactical-card-sm {
   background-color: #FFFFFF !important;
-  border: 1.5px solid #536878 !important;
+  border: 1.5px solid #3A3A3C !important;
 }
 
-/* Night-Vision Onyx / Dither Mode (CR >= 4.5:1 across dark surfaces) */
+/* Apple HIG System Dark Mode (night-vision) */
 html[data-lighting="night-vision"] body {
-  background-color: #0A0A0A !important;
-  color: #E5E4E2 !important;
+  background-color: #000000 !important;
+  color: #F2F2F7 !important;
 }
 
 html[data-lighting="night-vision"] .bg-\[\#EDF1EE\],
@@ -302,34 +314,38 @@ html[data-lighting="night-vision"] .bg-\[\#F4F7F5\],
 html[data-lighting="night-vision"] .bg-\[\#E4EBE7\],
 html[data-lighting="night-vision"] .bg-\[\#F4F6F5\],
 html[data-lighting="night-vision"] .bg-\[\#F6F9F7\],
-html[data-lighting="night-vision"] .bg-\[\#E5E4E2\] {
-  background-color: #0A0A0A !important;
-  color: #E5E4E2 !important;
+html[data-lighting="night-vision"] .bg-\[\#E5E4E2\],
+html[data-lighting="night-vision"] .bg-\[\#F2F2F7\] {
+  background-color: #000000 !important;
+  color: #F2F2F7 !important;
 }
 
 html[data-lighting="night-vision"] .bg-white,
 html[data-lighting="night-vision"] .tactical-card,
-html[data-lighting="night-vision"] .tactical-card-sm {
-  background-color: #12161B !important;
-  color: #E5E4E2 !important;
-  border-color: #536878 !important;
+html[data-lighting="night-vision"] .tactical-card-sm,
+html[data-lighting="night-vision"] .hig-inset-group {
+  background-color: #1C1C1E !important;
+  color: #F2F2F7 !important;
+  border-color: #38383A !important;
 }
 
 html[data-lighting="night-vision"] .text-\[\#0D1F1A\],
 html[data-lighting="night-vision"] .text-\[\#081820\],
 html[data-lighting="night-vision"] .text-\[\#1C2E2A\],
-html[data-lighting="night-vision"] .text-\[\#0A0A0A\] {
-  color: #E5E4E2 !important;
+html[data-lighting="night-vision"] .text-\[\#0A0A0A\],
+html[data-lighting="night-vision"] .text-\[\#1C1C1E\] {
+  color: #F2F2F7 !important;
 }
 
 html[data-lighting="night-vision"] .text-\[\#5A706A\],
 html[data-lighting="night-vision"] .text-\[\#4A635D\],
 html[data-lighting="night-vision"] .text-\[\#1B362F\],
-html[data-lighting="night-vision"] .text-\[\#1E3831\] {
-  color: #9FB2C0 !important;
+html[data-lighting="night-vision"] .text-\[\#1E3831\],
+html[data-lighting="night-vision"] .text-\[\#3A3A3C\] {
+  color: #AEAEB2 !important;
 }
 
-/* Custom high-visibility scrollbars */
+/* Custom Apple-style minimal scrollbars */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
@@ -338,35 +354,36 @@ html[data-lighting="night-vision"] .text-\[\#1E3831\] {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: #9AA7B2;
+  background: #C7C7CC;
   border-radius: 999px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #536878;
+  background: #8E8E93;
 }
 
-/* Leaflet tactical theme & Apple HIG >= 44x44pt zoom controls */
+/* Leaflet map with Apple HIG >= 44x44pt zoom controls */
 .leaflet-container {
-  background-color: #DDE2E6 !important;
-  font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  background-color: #E5E5EA !important;
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Plus Jakarta Sans', sans-serif;
   touch-action: pan-y pinch-zoom;
 }
 .leaflet-popup-content-wrapper {
-  background: #0A0A0A !important;
-  color: #E5E4E2 !important;
-  border-radius: 12px !important;
-  border: 1.5px solid #536878;
+  background: #FFFFFF !important;
+  color: #1C1C1E !important;
+  border-radius: 14px !important;
+  border: 1px solid #D1D1D6;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12) !important;
   font-size: 0.9rem !important;
 }
 .leaflet-popup-tip {
-  background: #0A0A0A !important;
+  background: #FFFFFF !important;
 }
 .leaflet-control-zoom a {
   width: 44px !important;
   height: 44px !important;
   line-height: 42px !important;
   font-size: 20px !important;
-  font-weight: 700 !important;
+  font-weight: 600 !important;
 }
 
 @keyframes radar-sweep {
@@ -384,12 +401,12 @@ html[data-lighting="night-vision"] .text-\[\#1E3831\] {
 
 @keyframes battery-critical-pulse {
   0%, 100% {
-    border-color: #E11D48;
-    box-shadow: 0 0 0 0 rgba(225, 29, 72, 0.55);
+    border-color: #FF3B30;
+    box-shadow: 0 0 0 0 rgba(255, 59, 48, 0.45);
   }
   50% {
-    border-color: #9F1239;
-    box-shadow: 0 0 0 6px rgba(225, 29, 72, 0);
+    border-color: #D70015;
+    box-shadow: 0 0 0 6px rgba(255, 59, 48, 0);
   }
 }
 

@@ -1,5 +1,13 @@
 import React, { useEffect, useState } from 'react';
-import { Compass, ArrowRight, Edit2, CloudDownload, Play } from 'lucide-react';
+import {
+  ArrowLeft,
+  ArrowRight,
+  CloudDownload,
+  Compass,
+  Edit2,
+  Play,
+  Sliders,
+} from 'lucide-react';
 import {
   AreaPrecacheBanner,
   Card,
@@ -22,12 +30,16 @@ interface SearchPlanScreenProps {
   onLaunchActiveOperation?: () => void;
 }
 
+type SearchPlanSubScreen = 'MAP_CONTOURS' | 'ASSUMPTIONS_CACHE';
+
 export const SearchPlanScreen: React.FC<SearchPlanScreenProps> = ({
   rescue,
   onRevise,
   onProceedToReview,
   onLaunchActiveOperation,
 }) => {
+  const [activeSubScreen, setActiveSubScreen] = useState<SearchPlanSubScreen>('MAP_CONTOURS');
+
   const plan = rescue.plan;
   const rings = plan?.rings || [
     { probability: 0.5, radius_m: 3000 },
@@ -84,20 +96,20 @@ export const SearchPlanScreen: React.FC<SearchPlanScreenProps> = ({
   };
 
   return (
-    <div className="flex-1 min-h-0 flex flex-col bg-[#F4F7F5] overflow-y-auto hig-scroll-view">
+    <div className="flex-1 min-h-0 flex flex-col bg-[#F2F2F7] overflow-y-auto hig-scroll-view">
       <StepHeader
         stepNumber="05 / 09"
-        stepTitle="ESTIMATED AREA"
+        stepTitle="ESTIMATED AREA · MULTI-VIEW"
         missionRef={rescue.mission_reference}
       />
 
-      <div className="p-4 sm:p-6 pb-8 max-w-6xl mx-auto w-full space-y-4">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+      <div className="p-4 sm:p-6 pb-8 max-w-6xl mx-auto w-full space-y-5">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>
-            <h1 className="text-xl sm:text-2xl font-black text-[#1C2E2A] tracking-tight">
-              Search area estimation &amp; terrain viability
+            <h1 className="text-xl sm:text-2xl font-bold text-[#1C1C1E] tracking-tight">
+              Search Area Estimation &amp; Terrain Viability
             </h1>
-            <p className="text-xs text-[#5A706A] mt-0.5">
+            <p className="text-xs text-[#6C6C70] mt-0.5">
               Kinematic probability contours (50%, 75%, 95%) anchored at {rescue.location_label}{' '}
               with hexagonal causality overlay
             </p>
@@ -117,158 +129,239 @@ export const SearchPlanScreen: React.FC<SearchPlanScreenProps> = ({
           </div>
         </div>
 
-        {/* Mandatory Warning Notice */}
-        <PlanningEstimateNotice />
+        {/* Apple HIG Segmented Control — 2 Views */}
+        <div className="hig-segmented-control" role="tablist" aria-label="Search Plan Views">
+          <button
+            type="button"
+            role="tab"
+            aria-selected={activeSubScreen === 'MAP_CONTOURS'}
+            onClick={() => setActiveSubScreen('MAP_CONTOURS')}
+            className={`hig-segment-btn ${
+              activeSubScreen === 'MAP_CONTOURS'
+                ? 'hig-segment-btn-active'
+                : 'hig-segment-btn-inactive'
+            }`}
+          >
+            <Compass
+              size={16}
+              className={activeSubScreen === 'MAP_CONTOURS' ? 'text-[#007AFF]' : 'text-[#6C6C70]'}
+            />
+            <span>Interactive Contour &amp; Hex Map</span>
+            <span className="font-mono text-[11px] font-semibold px-2 py-0.5 rounded-md bg-[#007AFF]/12 text-[#007AFF]">
+              18 Sectors
+            </span>
+          </button>
 
-        {/* Background Area Pre-Cache Status Banner */}
-        <AreaPrecacheBanner rescue={rescue} />
+          <button
+            type="button"
+            role="tab"
+            aria-selected={activeSubScreen === 'ASSUMPTIONS_CACHE'}
+            onClick={() => setActiveSubScreen('ASSUMPTIONS_CACHE')}
+            className={`hig-segment-btn ${
+              activeSubScreen === 'ASSUMPTIONS_CACHE'
+                ? 'hig-segment-btn-active'
+                : 'hig-segment-btn-inactive'
+            }`}
+          >
+            <Sliders
+              size={16}
+              className={
+                activeSubScreen === 'ASSUMPTIONS_CACHE' ? 'text-[#007AFF]' : 'text-[#6C6C70]'
+              }
+            />
+            <span>Model Assumptions &amp; Area Pre-Cache</span>
+            <span className="font-mono text-[11px] font-semibold px-2 py-0.5 rounded-md bg-[#34C759]/15 text-[#248A3D]">
+              Z11–Z14 Cache
+            </span>
+          </button>
+        </div>
 
-        {/* Overlay Controls */}
-        <MapOverlayControls
-          toggles={layerToggles}
-          onToggle={handleToggleLayer}
-          isCompact={true}
-        />
+        {/* VIEW 01: INTERACTIVE MAP & CONTOUR ENVELOPES */}
+        {activeSubScreen === 'MAP_CONTOURS' && (
+          <div className="space-y-4 animate-in fade-in duration-150">
+            <MapOverlayControls
+              toggles={layerToggles}
+              onToggle={handleToggleLayer}
+              isCompact={true}
+            />
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
-          {/* Left Column: Interactive Map with Contours */}
-          <div className="lg:col-span-8 flex flex-col min-h-[420px]">
-            <Card className="flex-1 flex flex-col p-3">
-              <div className="flex items-center justify-between mb-2 px-1">
-                <span className="text-xs font-bold uppercase tracking-wider text-[#1C2E2A] flex items-center gap-1.5">
-                  <Compass size={14} className="text-[#0B6758]" />
-                  <span>Kinematic Wander Contours &amp; Hexagonal Sectors</span>
-                </span>
-                <span className="text-[11px] font-mono text-[#5A706A]">
-                  Click hex to inspect terrain &amp; team feasibility
-                </span>
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
+              <div className="lg:col-span-8 flex flex-col min-h-[440px]">
+                <Card className="flex-1 flex flex-col p-3">
+                  <div className="flex items-center justify-between mb-2 px-1">
+                    <span className="text-xs font-bold uppercase tracking-wider text-[#1C2E2A] flex items-center gap-1.5">
+                      <Compass size={14} className="text-[#0B6758]" />
+                      <span>Kinematic Wander Contours &amp; Hexagonal Sectors</span>
+                    </span>
+                    <span className="text-[11px] font-mono text-[#5A706A]">
+                      Click hex to inspect terrain &amp; team feasibility
+                    </span>
+                  </div>
+                  <div className="flex-1 min-h-[400px]">
+                    <OsmMap
+                      center={rescue.last_known_location}
+                      zoom={11}
+                      pin={rescue.last_known_location}
+                      pinLabel={`${rescue.location_label} (LKP)`}
+                      rings={rings}
+                      regions={plan?.regions}
+                      dataSources={plan?.data_sources}
+                      layerToggles={layerToggles}
+                      weather={WEATHER_PRESETS.BASELINE}
+                      selectedHexId={selectedCell?.cell_id}
+                      onSelectHex={handleSelectHex}
+                      showLegend={true}
+                      className="h-full min-h-[400px]"
+                    />
+                  </div>
+                </Card>
               </div>
-              <div className="flex-1 min-h-[380px]">
-                <OsmMap
-                  center={rescue.last_known_location}
-                  zoom={11}
-                  pin={rescue.last_known_location}
-                  pinLabel={`${rescue.location_label} (LKP)`}
-                  rings={rings}
-                  regions={plan?.regions}
-                  dataSources={plan?.data_sources}
-                  layerToggles={layerToggles}
-                  weather={WEATHER_PRESETS.BASELINE}
-                  selectedHexId={selectedCell?.cell_id}
-                  onSelectHex={handleSelectHex}
-                  showLegend={true}
-                  className="h-full min-h-[380px]"
-                />
+
+              <div className="lg:col-span-4 space-y-4">
+                {selectedCell && selectedReport ? (
+                  <CellCausalityInspector
+                    cell={selectedCell}
+                    report={selectedReport}
+                    onClose={() => {
+                      setSelectedCell(null);
+                      setSelectedReport(null);
+                    }}
+                  />
+                ) : (
+                  <Card className="space-y-4">
+                    <h3 className="text-xs font-bold uppercase tracking-wider text-[#1C2E2A] border-b border-[#E2E8E5] pb-2">
+                      Probability Ring Envelopes
+                    </h3>
+                    <div className="space-y-2.5">
+                      <div className="flex items-center justify-between p-3 rounded-xl bg-[#F4F6F5] border-l-4 border-[#18796C] text-xs">
+                        <div>
+                          <div className="font-bold text-[#1C2E2A]">50% Probability Contour</div>
+                          <div className="text-[11px] text-[#5A706A]">Radius: 3.0 km from LKP</div>
+                        </div>
+                        <span className="font-mono font-bold text-[#0B6758]">28.3 km²</span>
+                      </div>
+
+                      <div className="flex items-center justify-between p-3 rounded-xl bg-[#F4F6F5] border-l-4 border-[#269584] text-xs">
+                        <div>
+                          <div className="font-bold text-[#1C2E2A]">75% Probability Contour</div>
+                          <div className="text-[11px] text-[#5A706A]">Radius: 5.4 km from LKP</div>
+                        </div>
+                        <span className="font-mono font-bold text-[#0B6758]">91.6 km²</span>
+                      </div>
+
+                      <div className="flex items-center justify-between p-3 rounded-xl bg-[#F4F6F5] border-l-4 border-[#57BCAE] text-xs">
+                        <div>
+                          <div className="font-bold text-[#1C2E2A]">95% Probability Contour</div>
+                          <div className="text-[11px] text-[#5A706A]">Radius: 12.0 km from LKP</div>
+                        </div>
+                        <span className="font-mono font-bold text-[#0B6758]">452.4 km²</span>
+                      </div>
+                    </div>
+
+                    <div className="pt-2 border-t border-[#E2E8E5]">
+                      <SecondaryButton
+                        onClick={() => setActiveSubScreen('ASSUMPTIONS_CACHE')}
+                        className="w-full"
+                        icon={<ArrowRight size={15} />}
+                      >
+                        Inspect Assumptions &amp; Offline Pre-Cache
+                      </SecondaryButton>
+                    </div>
+                  </Card>
+                )}
+
+                <PrimaryButton
+                  onClick={() => handleTransitionWithPrecache('REVIEW')}
+                  className="w-full py-3"
+                  icon={<ArrowRight size={16} />}
+                >
+                  Review assumptions &amp; resources (Step 06)
+                </PrimaryButton>
               </div>
-            </Card>
-          </div>
-
-          {/* Right Column: Model Assumptions & Inspector / Rings Breakdown */}
-          <div className="lg:col-span-4 space-y-4">
-            {selectedCell && selectedReport ? (
-              <CellCausalityInspector
-                cell={selectedCell}
-                report={selectedReport}
-                onClose={() => {
-                  setSelectedCell(null);
-                  setSelectedReport(null);
-                }}
-              />
-            ) : (
-              <Card className="space-y-4">
-                <h2 className="text-xs font-bold uppercase tracking-wider text-[#1C2E2A] border-b border-[#E2E8E5] pb-2">
-                  Recorded Assumptions
-                </h2>
-
-                <div className="space-y-2 text-xs">
-                  <div className="flex items-start justify-between">
-                    <span className="text-[#5A706A]">Anchor (LKP):</span>
-                    <span className="font-semibold text-[#1C2E2A] text-right font-mono">
-                      {rescue.last_known_location.lat.toFixed(4)}° N,{' '}
-                      {Math.abs(rescue.last_known_location.lon).toFixed(4)}° W
-                    </span>
-                  </div>
-                  <div className="flex items-start justify-between">
-                    <span className="text-[#5A706A]">Mobility Mode:</span>
-                    <span className="font-semibold text-[#1C2E2A]">
-                      {rescue.travel_mode === 'ON_FOOT' ? 'On Foot' : rescue.travel_mode}
-                    </span>
-                  </div>
-                  <div className="flex items-start justify-between">
-                    <span className="text-[#5A706A]">Velocity Priors:</span>
-                    <span className="font-semibold text-[#1C2E2A] font-mono">
-                      d50 = 3 km, τ = 6.0h
-                    </span>
-                  </div>
-                  <div className="flex items-start justify-between">
-                    <span className="text-[#5A706A]">Elapsed Window:</span>
-                    <span className="font-semibold text-[#0B6758] font-mono">
-                      {plan?.window.elapsed_minutes
-                        ? Math.round(plan.window.elapsed_minutes / 60)
-                        : 3}
-                      h (to 12:30 UTC)
-                    </span>
-                  </div>
-                  <div className="flex items-start justify-between">
-                    <span className="text-[#5A706A]">Terrain Decay:</span>
-                    <span className="font-semibold text-[#1C2E2A]">
-                      {rescue.terrain_type || 'Moorland paths'}
-                    </span>
-                  </div>
-                </div>
-
-                <div className="pt-2 border-t border-[#E2E8E5]">
-                  <h3 className="text-xs font-bold uppercase tracking-wider text-[#1C2E2A] mb-2.5">
-                    Contour Envelopes
-                  </h3>
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between p-2 rounded bg-[#F4F6F5] border-l-4 border-[#18796C] text-xs">
-                      <div>
-                        <div className="font-bold text-[#1C2E2A]">50% Probability</div>
-                        <div className="text-[11px] text-[#5A706A]">Radius: 3.0 km</div>
-                      </div>
-                      <span className="font-mono font-semibold text-[#0B6758]">28.3 km²</span>
-                    </div>
-
-                    <div className="flex items-center justify-between p-2 rounded bg-[#F4F6F5] border-l-4 border-[#269584] text-xs">
-                      <div>
-                        <div className="font-bold text-[#1C2E2A]">75% Probability</div>
-                        <div className="text-[11px] text-[#5A706A]">Radius: 5.4 km</div>
-                      </div>
-                      <span className="font-mono font-semibold text-[#0B6758]">91.6 km²</span>
-                    </div>
-
-                    <div className="flex items-center justify-between p-2 rounded bg-[#F4F6F5] border-l-4 border-[#57BCAE] text-xs">
-                      <div>
-                        <div className="font-bold text-[#1C2E2A]">95% Probability</div>
-                        <div className="text-[11px] text-[#5A706A]">Radius: 12.0 km</div>
-                      </div>
-                      <span className="font-mono font-semibold text-[#0B6758]">452.4 km²</span>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="pt-2 border-t border-[#E2E8E5] text-xs text-[#485865] flex items-start gap-2">
-                  <CloudDownload size={15} className="text-[#536878] shrink-0 mt-0.5" />
-                  <span>
-                    Proceeding to Active Operation automatically pre-caches Z11–Z14 map tiles and
-                    localized sector weather envelopes in the background.
-                  </span>
-                </div>
-              </Card>
-            )}
-
-            <div className="pt-1 space-y-2">
-              <PrimaryButton
-                onClick={() => handleTransitionWithPrecache('REVIEW')}
-                className="w-full py-3"
-                icon={<ArrowRight size={16} />}
-              >
-                Review assumptions &amp; resources
-              </PrimaryButton>
             </div>
           </div>
-        </div>
+        )}
+
+        {/* VIEW 02: MODEL ASSUMPTIONS & BACKGROUND PRE-CACHE */}
+        {activeSubScreen === 'ASSUMPTIONS_CACHE' && (
+          <div className="space-y-5 animate-in fade-in duration-150">
+            <PlanningEstimateNotice />
+
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
+              <div className="lg:col-span-5">
+                <Card className="space-y-4 h-full">
+                  <h2 className="text-xs font-bold uppercase tracking-wider text-[#1C2E2A] border-b border-[#E2E8E5] pb-2">
+                    Recorded Kinematic Priors &amp; Assumptions
+                  </h2>
+
+                  <div className="space-y-3 text-xs">
+                    <div className="flex items-start justify-between py-1 border-b border-[#E2E8E5]/60">
+                      <span className="text-[#5A706A]">Anchor (LKP):</span>
+                      <span className="font-semibold text-[#1C2E2A] text-right font-mono">
+                        {rescue.last_known_location.lat.toFixed(4)}° N,{' '}
+                        {Math.abs(rescue.last_known_location.lon).toFixed(4)}° W
+                      </span>
+                    </div>
+                    <div className="flex items-start justify-between py-1 border-b border-[#E2E8E5]/60">
+                      <span className="text-[#5A706A]">Mobility Mode:</span>
+                      <span className="font-semibold text-[#1C2E2A]">
+                        {rescue.travel_mode === 'ON_FOOT' ? 'On Foot' : rescue.travel_mode}
+                      </span>
+                    </div>
+                    <div className="flex items-start justify-between py-1 border-b border-[#E2E8E5]/60">
+                      <span className="text-[#5A706A]">Velocity Priors:</span>
+                      <span className="font-semibold text-[#1C2E2A] font-mono">
+                        d50 = 3 km, τ = 6.0h
+                      </span>
+                    </div>
+                    <div className="flex items-start justify-between py-1 border-b border-[#E2E8E5]/60">
+                      <span className="text-[#5A706A]">Elapsed Window:</span>
+                      <span className="font-semibold text-[#0B6758] font-mono">
+                        {plan?.window.elapsed_minutes
+                          ? Math.round(plan.window.elapsed_minutes / 60)
+                          : 3}
+                        h (to 12:30 UTC)
+                      </span>
+                    </div>
+                    <div className="flex items-start justify-between py-1">
+                      <span className="text-[#5A706A]">Terrain Decay:</span>
+                      <span className="font-semibold text-[#1C2E2A]">
+                        {rescue.terrain_type || 'Moorland paths'}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="pt-3 border-t border-[#E2E8E5] text-xs text-[#485865] flex items-start gap-2">
+                    <CloudDownload size={15} className="text-[#536878] shrink-0 mt-0.5" />
+                    <span>
+                      Proceeding to Active Operation automatically pre-caches Z11–Z14 map tiles and
+                      localized sector weather envelopes in the background.
+                    </span>
+                  </div>
+                </Card>
+              </div>
+
+              <div className="lg:col-span-7 space-y-4">
+                <AreaPrecacheBanner rescue={rescue} />
+
+                <div className="flex flex-wrap items-center justify-between gap-3 pt-2">
+                  <SecondaryButton
+                    onClick={() => setActiveSubScreen('MAP_CONTOURS')}
+                    icon={<ArrowLeft size={16} />}
+                  >
+                    Back to Contour Map
+                  </SecondaryButton>
+                  <PrimaryButton
+                    onClick={() => handleTransitionWithPrecache('REVIEW')}
+                    icon={<ArrowRight size={16} />}
+                  >
+                    Confirm Resources &amp; Deploy (Step 06)
+                  </PrimaryButton>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

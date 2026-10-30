@@ -39,8 +39,8 @@ import { TimeFormat } from './core/TimeFormat';
 export const App: React.FC = () => {
   const [rescues, setRescues] = useState<Rescue[]>(rescueRepository.allRescues);
   const [selectedRescueId, setSelectedRescueId] = useState<string>('SAR-026');
-  const [currentStep, setCurrentStep] = useState<number>(1); // Default to 01 / 09 Field Workspace (with 1-tap access to 07 Active Operation)
-  const [isLandingPage, setIsLandingPage] = useState<boolean>(false);
+  const [currentStep, setCurrentStep] = useState<number>(1);
+  const [isLandingPage, setIsLandingPage] = useState<boolean>(true);
   const [showSettings, setShowSettings] = useState<boolean>(false);
   const [showLogObservationModal, setShowLogObservationModal] = useState<boolean>(false);
   const [isBuildingModel, setIsBuildingModel] = useState<boolean>(false);
@@ -412,105 +412,120 @@ export const App: React.FC = () => {
     setShowLogObservationModal(false);
   };
 
-  // Desktop Navigation items
+  // Desktop Navigation items grouped clearly
   const navItems = [
     { step: 1, label: '01 Field Workspace', icon: <Layers size={18} /> },
+    { step: 5, label: '05 Search Plan & Area', icon: <Globe size={18} /> },
     { step: 7, label: '07 Active Operation', icon: <Compass size={18} /> },
     { step: 8, label: '08 Evidence Review', icon: <Camera size={18} /> },
     { step: 9, label: '09 Audit & Closure', icon: <FileText size={18} /> },
   ];
 
   return (
-    <div className="h-dvh w-full overflow-hidden bg-[#E5E4E2] text-[#0A0A0A] flex lg:grid lg:grid-cols-[minmax(272px,296px)_1fr]">
-      {/* 1. Desktop Sidebar — Onyx (#0A0A0A) with Film Grain & Blue Slate (#536878) */}
-      <aside className="hidden lg:flex flex-col bg-[#0A0A0A] text-[#E5E4E2] abertech-grain border-r border-[#536878]/40 shrink-0 z-20 overflow-y-auto">
+    <div className="h-dvh w-full overflow-hidden bg-[#F2F2F7] text-[#1C1C1E] flex lg:grid lg:grid-cols-[minmax(272px,296px)_1fr]">
+      {/* 1. Desktop Sidebar — Apple HIG System Grouped Sidebar */}
+      <aside className="hidden lg:flex flex-col bg-[#F2F2F7] text-[#1C1C1E] border-r border-[#D1D1D6] shrink-0 z-20 overflow-y-auto">
         {/* Brand Header */}
-        <div className="p-4 border-b border-[#536878]/35">
-          <AberTechBrand dark subtitle="Field · SR Portal" />
+        <div className="p-4 border-b border-[#D1D1D6] bg-white/80 backdrop-blur-md">
+          <AberTechBrand subtitle="Field · SR Portal" />
         </div>
 
-        {/* Landing Page & Pitch Highlight Button */}
-        <div className="p-3.5 pb-2 border-b border-[#536878]/30">
+        {/* Landing Page & Overview Highlight Button */}
+        <div className="p-3.5 pb-2">
           <button
             type="button"
-            onClick={() => setIsLandingPage(!isLandingPage)}
-            className={`w-full flex items-center justify-between px-3.5 py-2.5 min-h-[44px] rounded-full text-sm font-bold transition-colors border cursor-pointer ${
+            onClick={() => {
+              setShowSettings(false);
+              setIsLandingPage(!isLandingPage);
+            }}
+            className={`w-full flex items-center justify-between px-3.5 py-2.5 min-h-[44px] rounded-xl text-[14px] font-semibold transition-all border cursor-pointer ${
               isLandingPage
-                ? 'bg-[#E5A996] text-[#0A0A0A] border-[#E5A996]'
-                : 'bg-[#12161B] text-[#E5E4E2] border-[#536878]/60 hover:border-[#E5A996]/70 hover:bg-[#536878]/25'
+                ? 'bg-[#007AFF] text-white border-[#007AFF] shadow-xs'
+                : 'bg-white text-[#1C1C1E] border-[#D1D1D6] hover:bg-[#E5E5EA]/60'
             }`}
           >
             <div className="flex items-center gap-2.5">
-              <Globe size={17} className={isLandingPage ? 'text-[#0A0A0A]' : 'text-[#E5A996]'} />
-              <span className="font-serif-editorial tracking-wide">
-                {isLandingPage ? 'Return to Portal' : 'Editorial Overview'}
-              </span>
+              <Globe size={17} className={isLandingPage ? 'text-white' : 'text-[#007AFF]'} />
+              <span>{isLandingPage ? '00 Overview Guide' : '00 Home & Guide'}</span>
             </div>
-            <span className="text-[11px] bg-[#536878] text-[#E5E4E2] px-2 py-0.5 rounded-full font-mono font-bold">
-              POC
+            <span
+              className={`text-[11px] px-2 py-0.5 rounded-md font-mono font-semibold ${
+                isLandingPage ? 'bg-white/20 text-white' : 'bg-[#F2F2F7] text-[#6C6C70]'
+              }`}
+            >
+              GUIDE
             </span>
           </button>
         </div>
 
-        {/* Primary Step Navigation */}
-        <div className="p-3.5 space-y-1">
-          <div className="px-2.5 py-1 text-[11px] font-mono font-bold uppercase tracking-widest text-[#9FB2C0]">
-            Mission Workflow
+        {/* Primary Step Navigation — Apple HIG Sidebar List */}
+        <div className="px-3.5 py-2 space-y-1">
+          <div className="px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wider text-[#6C6C70]">
+            Primary Screens
           </div>
-          {navItems.map((item) => {
-            const isActive = !isLandingPage && !showSettings && currentStep === item.step;
-            return (
-              <button
-                key={item.step}
-                type="button"
-                onClick={() => {
-                  setIsLandingPage(false);
-                  setShowSettings(false);
-                  setCurrentStep(item.step);
-                }}
-                className={`w-full flex items-center gap-3 px-3.5 py-2.5 min-h-[44px] rounded-xl text-sm transition-colors cursor-pointer ${
-                  isActive
-                    ? 'bg-[#536878] text-[#E5E4E2] font-bold border border-[#E5E4E2]/20'
-                    : 'bg-transparent text-[#E5E4E2]/80 font-medium hover:bg-white/5 hover:text-[#E5E4E2]'
-                }`}
-              >
-                <span className={isActive ? 'text-[#E5A996]' : 'text-[#9FB2C0]'}>{item.icon}</span>
-                <span>{item.label}</span>
-              </button>
-            );
-          })}
+          <div className="bg-white rounded-2xl border border-[#D1D1D6] p-1.5 space-y-0.5">
+            {navItems.map((item) => {
+              const isActive = !isLandingPage && !showSettings && currentStep === item.step;
+              return (
+                <button
+                  key={item.step}
+                  type="button"
+                  onClick={() => {
+                    setIsLandingPage(false);
+                    setShowSettings(false);
+                    setCurrentStep(item.step);
+                  }}
+                  className={`w-full flex items-center gap-3 px-3 py-2.5 min-h-[44px] rounded-xl text-[14px] transition-colors cursor-pointer ${
+                    isActive
+                      ? 'bg-[#007AFF]/12 text-[#007AFF] font-semibold'
+                      : 'bg-transparent text-[#1C1C1E] font-medium hover:bg-[#F2F2F7]'
+                  }`}
+                >
+                  <span className={isActive ? 'text-[#007AFF]' : 'text-[#6C6C70]'}>{item.icon}</span>
+                  <span>{item.label}</span>
+                </button>
+              );
+            })}
+          </div>
         </div>
 
-        {/* Setup Wizard Steps Sub-section (if in setup) */}
-        {currentStep >= 2 && currentStep <= 6 && !isLandingPage && !showSettings && (
-          <div className="p-3.5 border-t border-[#536878]/35 bg-[#12161B] space-y-1">
-            <div className="px-2.5 py-1 text-[11px] font-mono font-bold uppercase tracking-widest text-[#E5A996]">
-              Incident Setup Steps
-            </div>
+        {/* Setup Wizard Steps Sub-section */}
+        <div className="px-3.5 py-2 space-y-1">
+          <div className="px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wider text-[#6C6C70]">
+            Setup &amp; Planning Steps
+          </div>
+          <div className="bg-white rounded-2xl border border-[#D1D1D6] p-1.5 space-y-0.5">
             {[
               { s: 2, name: '02 Incident Details' },
               { s: 3, name: '03 Last Known Point' },
               { s: 4, name: '04 Subject & Window' },
               { s: 5, name: '05 Search Plan Area' },
               { s: 6, name: '06 Resource Review' },
-            ].map((stepItem) => (
-              <button
-                key={stepItem.s}
-                type="button"
-                onClick={() => setCurrentStep(stepItem.s)}
-                className={`w-full text-left px-3.5 py-2 min-h-[40px] rounded-xl text-xs font-semibold transition-colors cursor-pointer ${
-                  currentStep === stepItem.s
-                    ? 'font-bold text-[#0A0A0A] bg-[#E5A996]'
-                    : 'text-[#E5E4E2]/80 hover:bg-white/10'
-                }`}
-              >
-                {stepItem.name}
-              </button>
-            ))}
+            ].map((stepItem) => {
+              const active = !isLandingPage && !showSettings && currentStep === stepItem.s;
+              return (
+                <button
+                  key={stepItem.s}
+                  type="button"
+                  onClick={() => {
+                    setIsLandingPage(false);
+                    setShowSettings(false);
+                    setCurrentStep(stepItem.s);
+                  }}
+                  className={`w-full text-left px-3 py-2 min-h-[40px] rounded-xl text-[13px] transition-colors cursor-pointer ${
+                    active
+                      ? 'font-semibold text-[#007AFF] bg-[#007AFF]/12'
+                      : 'font-medium text-[#3C3C43] hover:bg-[#F2F2F7]'
+                  }`}
+                >
+                  {stepItem.name}
+                </button>
+              );
+            })}
           </div>
-        )}
+        </div>
 
-        {/* Selected Mission Summary Card with Mountain Horizon (IMG_7717) */}
+        {/* Selected Mission Summary Card — Clean Apple HIG Grouped Widget */}
         {currentRescue && (
           <MountainHorizonCard
             onClick={() => {
@@ -518,35 +533,34 @@ export const App: React.FC = () => {
               setShowSettings(false);
               setCurrentStep(7);
             }}
-            className="mx-3.5 my-2 p-4 pb-8 space-y-2.5 border-[#536878]/60"
+            className="mx-3.5 my-2 p-4 space-y-2.5 bg-white border-[#D1D1D6] hover:border-[#007AFF]"
           >
             <div className="flex items-center justify-between text-xs">
-              <span className="font-mono font-bold text-[#0A0A0A] bg-[#E5A996] px-2.5 py-0.5 rounded-full tabular-nums">
+              <span className="font-mono font-semibold text-[#007AFF] bg-[#007AFF]/10 px-2.5 py-0.5 rounded-md tabular-nums">
                 {currentRescue.mission_reference}
               </span>
-              <span className="text-xs text-[#9FB2C0] font-mono font-semibold">
+              <span className="text-xs text-[#6C6C70] font-mono font-medium">
                 Cmdr {currentRescue.commander_reference}
               </span>
             </div>
             <div>
-              <div className="text-base font-serif-editorial font-bold text-[#E5E4E2] truncate">
+              <div className="text-[15px] font-semibold text-[#1C1C1E] truncate">
                 {currentRescue.mission_name}
               </div>
-              <div className="text-xs text-[#9FB2C0] truncate">
+              <div className="text-xs text-[#6C6C70] truncate">
                 {currentRescue.location_label}
               </div>
             </div>
-            <div className="pt-2 border-t border-[#536878]/40 flex items-center justify-between">
+            <div className="pt-2 border-t border-[#E5E5EA] flex items-center justify-between">
               <ActivityRing
                 percentage={68}
                 size={34}
                 strokeWidth={4}
-                color="#86EFAC"
+                color="#34C759"
                 label="Sector Sweep"
-                dark
               />
-              <span className="text-[11px] font-mono font-bold px-2.5 py-1 rounded-full bg-[#536878]/80 text-[#E5E4E2]">
-                Begin →
+              <span className="text-[12px] font-semibold px-2.5 py-1 rounded-lg bg-[#007AFF]/10 text-[#007AFF]">
+                Open →
               </span>
             </div>
           </MountainHorizonCard>
@@ -556,15 +570,15 @@ export const App: React.FC = () => {
         <div className="flex-1" />
 
         {/* Bottom Hardware Tag & Settings */}
-        <div className="p-3.5 border-t border-[#536878]/35 space-y-2.5 bg-[#0E1216]">
-          <div className="flex items-center justify-between text-xs font-semibold text-[#9FB2C0]">
-            <span className="font-mono font-bold bg-[#0A0A0A] px-2.5 py-1 rounded-md border border-[#536878]/50 text-[#E5E4E2]">
+        <div className="p-3.5 border-t border-[#D1D1D6] space-y-2.5 bg-white/80">
+          <div className="flex items-center justify-between text-xs font-medium text-[#6C6C70]">
+            <span className="font-mono font-semibold bg-[#F2F2F7] px-2.5 py-1 rounded-md border border-[#D1D1D6] text-[#1C1C1E]">
               {settingsStore.settings.deviceTag}
             </span>
-            <span className="text-[#86EFAC] font-mono font-bold">Offline Ready</span>
+            <span className="text-[#248A3D] font-mono font-semibold">Offline Ready</span>
           </div>
-          <div className="flex items-center gap-2 text-xs font-medium text-[#9FB2C0]">
-            <ShieldCheck size={15} className="text-[#E5A996] shrink-0" />
+          <div className="flex items-center gap-2 text-xs font-medium text-[#6C6C70]">
+            <ShieldCheck size={15} className="text-[#007AFF] shrink-0" />
             <span>3-Year 2 CFR 200 Retention</span>
           </div>
 
@@ -574,10 +588,10 @@ export const App: React.FC = () => {
               setIsLandingPage(false);
               setShowSettings(true);
             }}
-            className={`w-full flex items-center justify-center gap-2 px-3.5 py-2.5 min-h-[44px] rounded-full border text-xs font-bold transition-colors cursor-pointer ${
+            className={`w-full flex items-center justify-center gap-2 px-3.5 py-2.5 min-h-[44px] rounded-xl border text-[13px] font-semibold transition-colors cursor-pointer ${
               showSettings
-                ? 'bg-[#536878] text-[#E5E4E2] border-[#E5E4E2]/40'
-                : 'bg-[#12161B] hover:bg-[#536878]/30 text-[#E5E4E2] border-[#536878]/50'
+                ? 'bg-[#007AFF] text-white border-[#007AFF]'
+                : 'bg-[#F2F2F7] hover:bg-[#E5E5EA] text-[#1C1C1E] border-[#D1D1D6]'
             }`}
           >
             <SettingsIcon size={16} />
@@ -589,24 +603,24 @@ export const App: React.FC = () => {
       {/* 2. Main Content Area */}
       <div className="flex-1 flex flex-col h-full min-h-0 overflow-hidden min-w-0">
         {/* Top Dual Status Header */}
-        <div className="shrink-0 border-b border-[#C7C6C1]">
+        <div className="shrink-0">
           <DualStatusHeader />
         </div>
 
-        {/* Mobile App Bar Header (<1024px) */}
-        <div className="lg:hidden shrink-0 flex items-center justify-between px-4 py-2.5 bg-[#0A0A0A] text-[#E5E4E2] border-b border-[#536878]/50">
-          <AberTechBrand dark />
+        {/* Mobile App Bar Header (<1024px) — Apple HIG Translucent Navigation Bar */}
+        <div className="lg:hidden shrink-0 flex items-center justify-between px-4 py-2.5 bg-white/90 backdrop-blur-md text-[#1C1C1E] border-b border-[#D1D1D6]">
+          <AberTechBrand />
           <div className="flex items-center gap-2">
             <button
               type="button"
               onClick={() => setIsLandingPage(!isLandingPage)}
-              className={`px-3.5 py-1.5 min-h-[38px] rounded-full text-xs font-bold transition-colors cursor-pointer border ${
+              className={`px-3.5 py-1.5 min-h-[38px] rounded-lg text-xs font-semibold transition-colors cursor-pointer border ${
                 isLandingPage
-                  ? 'bg-[#E5A996] text-[#0A0A0A] border-[#E5A996]'
-                  : 'bg-[#536878] text-[#E5E4E2] border-[#536878] hover:bg-[#3D4E5B]'
+                  ? 'bg-[#007AFF] text-white border-[#007AFF]'
+                  : 'bg-[#F2F2F7] text-[#007AFF] border-[#D1D1D6] hover:bg-[#E5E5EA]'
               }`}
             >
-              {isLandingPage ? 'Portal' : 'Pitch'}
+              {isLandingPage ? 'Workspace' : 'Guide'}
             </button>
             <button
               type="button"
@@ -614,7 +628,7 @@ export const App: React.FC = () => {
                 setIsLandingPage(false);
                 setShowSettings(!showSettings);
               }}
-              className="p-2 min-h-[40px] min-w-[40px] flex items-center justify-center rounded-lg text-[#9FB2C0] hover:text-[#E5E4E2] hover:bg-white/10 cursor-pointer"
+              className="p-2 min-h-[44px] min-w-[44px] flex items-center justify-center rounded-xl text-[#007AFF] hover:bg-[#F2F2F7] cursor-pointer"
               title="Display & Accessibility Settings"
               aria-label="Display and Accessibility Settings"
             >
@@ -627,15 +641,21 @@ export const App: React.FC = () => {
         <main className="flex-1 min-h-0 flex flex-col overflow-hidden relative hig-scroll-view">
           {isLandingPage ? (
             <LandingPage
-              onLaunchOperation={() => {
+              activeRescue={currentRescue}
+              completedCount={rescues.filter((r) => r.status === 'COMPLETED').length}
+              onResumeActiveOperation={() => {
                 setIsLandingPage(false);
                 setCurrentStep(7);
               }}
-              onStartNewMission={() => {
+              onEnterWorkspace={() => {
+                setIsLandingPage(false);
+                setCurrentStep(1);
+              }}
+              onStartNewIncident={() => {
                 setIsLandingPage(false);
                 setCurrentStep(2);
               }}
-              onOpenStep={(step) => {
+              onNavigateToStep={(step: number) => {
                 setIsLandingPage(false);
                 setCurrentStep(step);
               }}

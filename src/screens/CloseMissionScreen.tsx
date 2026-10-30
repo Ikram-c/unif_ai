@@ -303,15 +303,15 @@ export const CloseMissionScreen: React.FC<CloseMissionScreenProps> = ({
               </div>
             </Card>
 
-            <div className="bg-[#081820] text-white rounded-2xl p-4 sm:p-5 space-y-2 border border-[#1B4D3E]">
-              <div className="flex items-center gap-2 text-xs font-mono font-bold text-[#88C070]">
+            <div className="bg-white text-[#1C1C1E] rounded-2xl p-4 sm:p-5 space-y-2 border border-[#D1D1D6] shadow-2xs">
+              <div className="flex items-center gap-2 text-xs font-mono font-bold text-[#007AFF]">
                 <HardDrive size={15} />
                 <span>DEVICE ABER-04 · ENCRYPTED FLASH</span>
               </div>
-              <div className="text-xs text-[#E0F8D0] font-mono">
+              <div className="text-xs text-[#1C1C1E] font-mono font-semibold">
                 SHA-256: 7f8a9d04...b12c8e39
               </div>
-              <div className="text-xs text-[#E0F8D0]/80">
+              <div className="text-xs text-[#636366]">
                 Immutable audit block compliant with grant recordkeeping rules.
               </div>
             </div>
